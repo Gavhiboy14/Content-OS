@@ -1,0 +1,289 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Base — negro con temperatura violácea, nunca gris neutro. El canvas es
+     casi negro para que el cristal de arriba tenga contra qué brillar. */
+  /* El extremo oscuro de la rampa: lo que se ve si el degradado no carga. */
+  --color-canvas: #0a0812;
+  --color-panel: #17151f;
+  --color-panel-hi: #221f2e;
+
+  /* Tinta */
+  --color-ink: #f6f5fa;
+  --color-ink-2: #a8a4b8;
+  --color-ink-3: #726d83;
+
+  /* Acento violeta. Se usa poco y a propósito: sólo lo que está activo. */
+  --color-accent: #b48ff0;
+  --color-accent-deep: #9366e8;
+
+  /* Líneas — el borde de cada superficie de cristal */
+  --color-line: rgb(255 255 255 / 9%);
+  --color-line-hi: rgb(255 255 255 / 16%);
+}
+
+:root {
+  /* Cristal: el desenfoque es lo que separa una superficie del fondo. Sin
+     él, la translucidez sólo ensucia — el fondo se lee a través y nada se
+     despega. La saturación extra devuelve el color que el blur apaga.
+
+     Deliberadamente contenido: un desenfoque fuerte llama la atención sobre
+     el marco en vez de sobre el contenido, que es lo contrario de lo que
+     tiene que hacer una herramienta de trabajo. */
+  --glass-blur: blur(14px) saturate(125%);
+
+  /* Brillo especular del borde superior: la línea de luz que hace que una
+     superficie parezca tener grosor. Es la firma visual de Apple. */
+  --glass-edge: inset 0 1px 0 rgb(255 255 255 / 8%);
+
+  /* Sombras: cortas y suaves. Alcanzan para despegar una superficie de la de
+     atrás sin que parezca flotando en el aire. */
+  --shadow-soft: 0 3px 12px rgb(0 0 0 / 20%);
+  --shadow-lifted: 0 10px 28px rgb(0 0 0 / 35%);
+
+  /* Halo del acento: apenas un aura, sólo en la acción principal. */
+  --glow-accent: 0 0 14px rgb(147 102 232 / 18%);
+
+  /* Curva de Apple: arranca rápido y frena largo. Da la sensación de peso. */
+  --ease-out-quart: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+body {
+  background-color: var(--color-canvas);
+  /* Rampa diagonal: el ambiente arranca claro arriba a la izquierda y cae a
+     casi negro abajo a la derecha. Es lo que da la sensación de una luz
+     entrando por una esquina.
+
+     Dos capas, y el orden importa (la primera se dibuja encima):
+     1. el foco violeta, que pone el color en el vértice claro;
+     2. la rampa gris-violácea, que hace el recorrido claro → oscuro.
+
+     El foco va enorme y centrado fuera de pantalla a propósito: sobre un
+     fondo oscuro, el borde donde un degradado termina se ve como una franja
+     recta. Si ese borde cae fuera del viewport, no hay franja que ver. */
+  background-image: radial-gradient(
+      1500px 1150px at -6% -18%,
+      rgb(176 128 236 / 26%),
+      transparent
+    ),
+    linear-gradient(
+      142deg,
+      #2c2542 0%,
+      #221c34 26%,
+      #171327 52%,
+      #100d1b 76%,
+      #0a0812 100%
+    );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  color: var(--color-ink);
+  min-height: 100vh;
+  /* Apple aprieta el interletrado a medida que el texto crece. */
+  letter-spacing: -0.011em;
+}
+
+/* Grano de película, casi invisible. Rompe el escalonado que dejan los
+   degradados sobre el negro, que es donde más se nota. Va como capa fija
+   por encima del fondo pero detrás de todo lo demás, y no intercepta el
+   mouse. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@layer components {
+  /* ── Cristal real ──────────────────────────────────────────────────────
+     Lleva backdrop-filter, que es caro de dibujar. Va sólo en superficies
+     grandes y pocas a la vez: el sidebar, las tarjetas de página, los
+     modales. Nunca en una fila que se repite decenas de veces. */
+  .panel {
+    background-color: rgb(23 21 31 / 62%);
+    background-image: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 7%),
+      rgb(255 255 255 / 3%)
+    );
+    /* Sin escribir el prefijo -webkit- a mano: el compilador lo agrega según
+       los navegadores objetivo. Puestos los dos, toma el segundo como
+       duplicado del primero y descarta la línea estándar. */
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--color-line);
+    box-shadow: var(--glass-edge), var(--shadow-soft);
+  }
+
+  /* ── Cristal simulado ──────────────────────────────────────────────────
+     Mismo aspecto, sin desenfoque: un degradado muy sutil más el brillo del
+     borde alcanzan sobre un fondo oscuro. Es lo que usan las filas de
+     contenido, que pueden ser muchas — así la lista sigue yendo fluida. */
+  .panel-interactive {
+    background-color: rgb(255 255 255 / 3.5%);
+    background-image: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 4%),
+      rgb(255 255 255 / 1%)
+    );
+    border: 1px solid var(--color-line);
+    box-shadow: var(--glass-edge);
+    transition: background-color 220ms var(--ease-out-quart),
+      border-color 220ms var(--ease-out-quart),
+      box-shadow 220ms var(--ease-out-quart);
+  }
+
+  .panel-interactive:hover {
+    background-color: rgb(255 255 255 / 7%);
+    border-color: var(--color-line-hi);
+    box-shadow: var(--glass-edge), var(--shadow-soft);
+  }
+
+  /* Botón secundario: cristal chico. */
+  .btn-soft {
+    background-color: rgb(255 255 255 / 7%);
+    border: 1px solid var(--color-line-hi);
+    color: var(--color-ink-2);
+    box-shadow: var(--glass-edge);
+    transition: background-color 220ms var(--ease-out-quart),
+      color 220ms var(--ease-out-quart),
+      border-color 220ms var(--ease-out-quart);
+  }
+
+  .btn-soft:hover {
+    background-color: rgb(255 255 255 / 13%);
+    border-color: rgb(255 255 255 / 24%);
+    color: var(--color-ink);
+  }
+
+  /* Botón principal: el acento sólido, uno por pantalla. El halo lo separa
+     del resto sin necesidad de hacerlo más grande. */
+  .btn-accent {
+    background-image: linear-gradient(
+      180deg,
+      var(--color-accent),
+      var(--color-accent-deep)
+    );
+    color: #fff;
+    border: 1px solid rgb(255 255 255 / 18%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 26%), var(--glow-accent);
+    transition: filter 220ms var(--ease-out-quart),
+      box-shadow 220ms var(--ease-out-quart);
+  }
+
+  .btn-accent:hover {
+    filter: brightness(1.1);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 26%),
+      0 0 20px rgb(147 102 232 / 30%);
+  }
+
+  /* Capa elevada: menús y modales. Cristal más denso, porque tapa contenido
+     que tiene que dejar de leerse. */
+  .surface-raised {
+    background-color: rgb(34 31 46 / 82%);
+    background-image: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 8%),
+      rgb(255 255 255 / 3%)
+    );
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--color-line-hi);
+    box-shadow: var(--glass-edge), var(--shadow-lifted);
+  }
+
+  /* Fila activa del sidebar: el acento tenue de fondo más un halo hacia
+     adentro. Es lo que hace que "acá estás" se lea de reojo. */
+  .nav-active {
+    background-color: rgb(180 143 240 / 12%);
+    box-shadow: inset 0 0 0 1px rgb(180 143 240 / 16%);
+  }
+
+  /* Marca del borde izquierdo. Sin resplandor: en una lista de navegación
+     hay muchas filas y el halo terminaba ensuciando las vecinas. */
+  .nav-marker {
+    background-color: var(--color-accent);
+  }
+
+  /* Pastilla de estado: el color lo pone cada estado; esto le agrega el
+     canto de cristal para que no se lea como un rectángulo plano. */
+  .chip {
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 9%),
+      inset 0 1px 0 rgb(255 255 255 / 8%);
+  }
+}
+
+/* Los títulos grandes van más apretados: a mayor tamaño, menos aire entre
+   letras. Es lo que separa una tipografía "de sistema" de una compuesta. */
+.font-display {
+  letter-spacing: -0.028em;
+}
+
+/* El body es una fila flexible (sidebar + contenido) y el main es el ítem que
+   se estira. Por regla de flexbox, un ítem no se achica por debajo del ancho
+   mínimo de su contenido salvo que se lo autorice con min-width: 0. Sin esto,
+   una fila con chips que no se encogen empuja el ancho de toda la página y
+   aparece scroll horizontal en el teléfono. */
+body > main {
+  min-width: 0;
+}
+
+/* Sidebar deslizable en pantallas chicas.
+   visibility se controla acá y no con utilidades, porque necesita un retardo
+   exacto: al cerrar tiene que esperar a que termine el deslizamiento, y al
+   abrir tiene que aplicarse de inmediato. Estar oculto (y no sólo desplazado)
+   es lo que lo saca del orden de tabulación. */
+@media (width < 64rem) {
+  .sidebar-slide {
+    visibility: hidden;
+    transform: translateX(-130%);
+    transition: transform 320ms var(--ease-out-quart),
+      visibility 0s linear 320ms;
+  }
+
+  .sidebar-slide[data-open="true"] {
+    visibility: visible;
+    transform: translateX(0);
+    transition: transform 320ms var(--ease-out-quart), visibility 0s linear 0s;
+  }
+}
+
+/* Foco visible para navegación por teclado. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Scrollbar discreta */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 12%) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 10%);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 18%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

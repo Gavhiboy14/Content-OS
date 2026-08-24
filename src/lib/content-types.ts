@@ -1,0 +1,300 @@
+import type { BlockType } from "@/lib/types";
+import type { PropertyDefinition } from "@/lib/page-types";
+
+/**
+ * REGISTRO DE TIPOS DE CONTENIDO
+ *
+ * Un contenido es algo que Gabriel produce y que vive dentro de una página:
+ * un guión, una idea, un hook. No es un lugar al que se navega desde el
+ * sidebar — eso son las páginas.
+ *
+ * Para sumar un tipo nuevo alcanza con agregar una entrada acá: la interfaz
+ * lo ofrece al crear, lo agrupa en su sección y le arma su vista. No hace
+ * falta tocar la base de datos.
+ *
+ * `hasBody` distingue dos familias:
+ *   - true  → se escribe (guión, idea, publicación): tiene página propia con editor
+ *   - false → es una línea (hook, tarea, referencia): se edita en la lista misma
+ */
+export interface ContentTypeDefinition {
+  type: string;
+  /** Nombre en singular. */
+  label: string;
+  /** Nombre en plural, para los títulos de sección: "Guiones". */
+  labelPlural: string;
+  /** "Nuevo guión" / "Nueva idea" — con el género ya resuelto, no se arma en runtime. */
+  newLabel: string;
+  icon: string;
+  hint: string;
+  hasBody: boolean;
+  properties: PropertyDefinition[];
+  /** Bloques con los que nace el cuerpo, si tiene. */
+  template: { type: BlockType; text: string }[];
+  /** Texto del estado vacío de su sección. */
+  emptyLabel: string;
+  /** Placeholder del campo, para los tipos que se editan en línea (hasBody: false). */
+  inlinePlaceholder?: string;
+  /**
+   * Propiedades iniciales que no son chips — por ejemplo el `done` de una
+   * tarea, que se maneja con una casilla y no con un menú.
+   */
+  initialProperties?: Record<string, string>;
+  /**
+   * Cuándo un contenido de este tipo cuenta como "sin terminar", para el
+   * resumen de la página. Se declara acá y no en la página para que sumar un
+   * tipo nuevo no obligue a tocar la lógica del contador.
+   * Sin esto, el tipo nunca cuenta como pendiente (un hook o una referencia
+   * no se "terminan").
+   */
+  pendingWhen?: { key: string; values: string[] };
+  /**
+   * Si tiene una vista propia en el grupo GENERAL del sidebar, que cruza
+   * todos los clientes. Se declara acá para no tener una lista de tipos
+   * escrita a mano dentro del sidebar.
+   */
+  showInGeneral?: boolean;
+}
+
+const ESTADO_GUION: PropertyDefinition = {
+  kind: "select",
+  key: "status",
+  label: "Estado",
+  defaultValue: "idea",
+  options: [
+    { value: "idea", label: "Idea", className: "bg-white/[0.10] text-ink-2" },
+    { value: "en_desarrollo", label: "En desarrollo", className: "bg-sky-400/20 text-sky-200" },
+    { value: "listo", label: "Listo", className: "bg-violet-400/20 text-violet-200" },
+    { value: "grabado", label: "Grabado", className: "bg-emerald-400/20 text-emerald-200" },
+  ],
+};
+
+/** Notas al pie de cualquier contenido: contexto que no va en el cuerpo. */
+const NOTAS: PropertyDefinition = {
+  kind: "text",
+  key: "notes",
+  label: "Notas",
+  placeholder: "Contexto, recordatorios, lo que sea…",
+};
+
+const ESTADO_IDEA: PropertyDefinition = {
+  kind: "select",
+  key: "status",
+  label: "Estado",
+  defaultValue: "nueva",
+  options: [
+    { value: "nueva", label: "Nueva", className: "bg-white/[0.10] text-ink-2" },
+    { value: "en_desarrollo", label: "En desarrollo", className: "bg-sky-400/20 text-sky-200" },
+    { value: "descartada", label: "Descartada", className: "bg-white/[0.06] text-ink-3" },
+  ],
+};
+
+const ESTADO_PUBLICACION: PropertyDefinition = {
+  kind: "select",
+  key: "status",
+  label: "Estado",
+  defaultValue: "programada",
+  options: [
+    { value: "programada", label: "Programada", className: "bg-white/[0.10] text-ink-2" },
+    { value: "publicada", label: "Publicada", className: "bg-emerald-400/20 text-emerald-200" },
+  ],
+};
+
+const ESTADO_TAREA: PropertyDefinition = {
+  kind: "select",
+  key: "status",
+  label: "Estado",
+  defaultValue: "pendiente",
+  options: [
+    { value: "pendiente", label: "Pendiente", className: "bg-white/[0.10] text-ink-2" },
+    { value: "en_progreso", label: "En progreso", className: "bg-sky-400/20 text-sky-200" },
+    { value: "completada", label: "Completada", className: "bg-emerald-400/20 text-emerald-200" },
+  ],
+};
+
+/**
+ * Qué tan urgente es algo. Se usa para ordenar las listas de gestión: lo alto
+ * primero. Nace en "media" para que nada quede sin prioridad por olvido.
+ */
+const PRIORIDAD: PropertyDefinition = {
+  kind: "select",
+  key: "priority",
+  label: "Prioridad",
+  defaultValue: "media",
+  options: [
+    { value: "alta", label: "Alta", className: "bg-rose-400/20 text-rose-200" },
+    { value: "media", label: "Media", className: "bg-white/[0.10] text-ink-2" },
+    { value: "baja", label: "Baja", className: "bg-white/[0.06] text-ink-3" },
+  ],
+};
+
+/** El link de una referencia o de una publicación que ya salió. */
+const ENLACE: PropertyDefinition = {
+  kind: "url",
+  key: "url",
+  label: "Enlace",
+  placeholder: "https://…",
+};
+
+/**
+ * La fecha en que algo sale o vence. Es la que alimenta el calendario:
+ * cualquier tipo que la lleve aparece ahí, sin tocar la vista.
+ */
+const FECHA: PropertyDefinition = {
+  kind: "date",
+  key: "date",
+  label: "Fecha",
+};
+
+export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
+  {
+    type: "guion",
+    label: "Guión",
+    labelPlural: "Guiones",
+    newLabel: "Nuevo guión",
+    icon: "🎬",
+    hint: "Gancho, desarrollo y CTA",
+    hasBody: true,
+    properties: [ESTADO_GUION, FECHA, NOTAS],
+    template: [
+      { type: "heading", text: "Gancho" },
+      { type: "text", text: "" },
+      { type: "heading", text: "Desarrollo" },
+      { type: "text", text: "" },
+      { type: "heading", text: "CTA" },
+      { type: "text", text: "" },
+    ],
+    emptyLabel: "Todavía no hay guiones acá",
+    // Un guión sigue en juego hasta que está grabado.
+    pendingWhen: { key: "status", values: ["idea", "en_desarrollo", "listo"] },
+  },
+  {
+    type: "idea",
+    label: "Idea",
+    labelPlural: "Ideas",
+    newLabel: "Nueva idea",
+    icon: "💡",
+    hint: "Algo para desarrollar después",
+    hasBody: true,
+    properties: [ESTADO_IDEA, PRIORIDAD, NOTAS],
+    template: [],
+    emptyLabel: "Ninguna idea anotada todavía",
+    // Una idea descartada ya no está pendiente: se decidió.
+    pendingWhen: { key: "status", values: ["nueva", "en_desarrollo"] },
+    showInGeneral: true,
+  },
+  {
+    type: "hook",
+    label: "Hook",
+    labelPlural: "Hooks",
+    newLabel: "Nuevo hook",
+    icon: "🪝",
+    hint: "Un gancho para reutilizar",
+    hasBody: false,
+    properties: [],
+    template: [],
+    emptyLabel: "Sin hooks guardados",
+    inlinePlaceholder: "Escribí el gancho…",
+  },
+  {
+    type: "referencia",
+    label: "Referencia",
+    labelPlural: "Referencias",
+    newLabel: "Nueva referencia",
+    icon: "📚",
+    hint: "Un link que querés tener a mano",
+    hasBody: false,
+    // El título es el nombre que le ponés; el enlace va aparte, así podés
+    // llamarla "Reel de Fulano" en vez de mostrar una URL larga.
+    properties: [ENLACE, NOTAS],
+    template: [],
+    emptyLabel: "Sin referencias guardadas",
+    inlinePlaceholder: "Nombre de la referencia…",
+    showInGeneral: true,
+  },
+  {
+    type: "publicacion",
+    label: "Publicación",
+    labelPlural: "Publicaciones",
+    newLabel: "Nueva publicación",
+    icon: "📸",
+    hint: "Algo que ya salió o está programado",
+    hasBody: true,
+    properties: [ESTADO_PUBLICACION, FECHA, ENLACE, NOTAS],
+    template: [],
+    emptyLabel: "Nada publicado ni programado",
+    pendingWhen: { key: "status", values: ["programada"] },
+  },
+  {
+    type: "tarea",
+    label: "Tarea",
+    labelPlural: "Tareas",
+    newLabel: "Nueva tarea",
+    icon: "✅",
+    hint: "Algo pendiente de hacer",
+    hasBody: false,
+    properties: [ESTADO_TAREA, PRIORIDAD, FECHA, NOTAS],
+    template: [],
+    emptyLabel: "Sin tareas pendientes",
+    inlinePlaceholder: "¿Qué hay que hacer?",
+    pendingWhen: { key: "status", values: ["pendiente", "en_progreso"] },
+    showInGeneral: true,
+  },
+  {
+    type: "nota",
+    label: "Nota",
+    labelPlural: "Notas",
+    newLabel: "Nueva nota",
+    icon: "📝",
+    hint: "Algo que querés dejar escrito",
+    hasBody: true,
+    // Una nota no tiene estado ni vence: es texto y ya. Su valor está en el
+    // cuerpo, no en sus campos.
+    properties: [],
+    template: [],
+    emptyLabel: "Sin notas todavía",
+  },
+];
+
+const BY_TYPE = new Map(CONTENT_TYPE_DEFINITIONS.map((d) => [d.type, d]));
+
+export function getContentTypeDefinition(type: string): ContentTypeDefinition {
+  return BY_TYPE.get(type) ?? CONTENT_TYPE_DEFINITIONS[0];
+}
+
+export function isKnownContentType(type: string): boolean {
+  return BY_TYPE.has(type);
+}
+
+/** Propiedades iniciales de un contenido según su tipo. */
+export function defaultContentProperties(type: string): Record<string, string> {
+  const definition = getContentTypeDefinition(type);
+  const props: Record<string, string> = { ...definition.initialProperties };
+  definition.properties.forEach((p) => {
+    // Las fechas nacen vacías: no hay una por defecto sensata.
+    if (p.kind === "select") props[p.key] = p.defaultValue;
+  });
+  return props;
+}
+
+/** Los tipos de contenido que llevan fecha, y por lo tanto entran al calendario. */
+export const DATED_CONTENT_TYPES = CONTENT_TYPE_DEFINITIONS.filter((d) =>
+  d.properties.some((p) => p.kind === "date")
+).map((d) => d.type);
+
+/** ¿Este contenido todavía está sin terminar? */
+export function isPendingContent(
+  type: string,
+  properties: Record<string, string>
+): boolean {
+  const rule = getContentTypeDefinition(type).pendingWhen;
+  if (!rule) return false;
+  return rule.values.includes(properties[rule.key]);
+}
+
+/** El orden en que se muestran las secciones dentro de una página. */
+export const CONTENT_TYPE_ORDER = CONTENT_TYPE_DEFINITIONS.map((d) => d.type);
+
+/** Los tipos con vista global propia, para el grupo GENERAL del sidebar. */
+export const GENERAL_VIEW_TYPES = CONTENT_TYPE_DEFINITIONS.filter(
+  (d) => d.showInGeneral
+);
