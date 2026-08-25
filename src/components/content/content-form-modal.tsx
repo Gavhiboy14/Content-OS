@@ -81,6 +81,20 @@ export function ContentFormModal({
     setValues((prev) => ({ ...prev, [key]: value }));
   }
 
+  const sueltos = definition.properties.filter(
+    (p) => !("group" in p && p.group)
+  );
+  const grupos = Object.entries(
+    definition.properties.reduce<Record<string, PropertyDefinition[]>>(
+      (acc, p) => {
+        const g = "group" in p && p.group ? p.group : null;
+        if (g) (acc[g] = acc[g] ?? []).push(p);
+        return acc;
+      },
+      {}
+    )
+  );
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
@@ -136,13 +150,39 @@ export function ContentFormModal({
           </Campo>
         )}
 
-        {definition.properties.map((property) => (
+        {/* Los campos sueltos primero; los que declaran un grupo (las
+            métricas) van juntos abajo, para que el formulario de una idea no
+            arranque pidiendo visualizaciones. */}
+        {sueltos.map((property) => (
           <CampoDePropiedad
             key={property.key}
             definition={property}
             value={values[property.key] ?? ""}
             onChange={(v) => setProperty(property.key, v)}
           />
+        ))}
+
+        {grupos.map(([nombre, campos]) => (
+          <details
+            key={nombre}
+            className="rounded-xl border border-line bg-black/15 px-3 py-2.5"
+            open={campos.some((c) => (values[c.key] ?? "").trim() !== "")}
+          >
+            <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-[0.14em] text-ink-3 marker:content-['']">
+              {nombre}
+              <span className="ml-1.5 normal-case">(opcional)</span>
+            </summary>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {campos.map((property) => (
+                <CampoDePropiedad
+                  key={property.key}
+                  definition={property}
+                  value={values[property.key] ?? ""}
+                  onChange={(v) => setProperty(property.key, v)}
+                />
+              ))}
+            </div>
+          </details>
         ))}
 
         {/* El cuerpo sólo se escribe al crear: después se edita con el editor
@@ -283,6 +323,27 @@ function CampoDePropiedad({
           onChange={(e) => onChange(e.target.value)}
           className="rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-accent/50"
         />
+      </Campo>
+    );
+  }
+
+  if (definition.kind === "number") {
+    return (
+      <Campo label={definition.label}>
+        <div className="flex items-center gap-1.5">
+          <input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            inputMode="numeric"
+            placeholder={definition.placeholder ?? "0"}
+            className="w-full min-w-0 rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+          />
+          {definition.unit && (
+            <span className="shrink-0 text-[13px] text-ink-3">
+              {definition.unit}
+            </span>
+          )}
+        </div>
       </Campo>
     );
   }

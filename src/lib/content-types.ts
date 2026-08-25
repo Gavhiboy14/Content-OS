@@ -55,18 +55,86 @@ export interface ContentTypeDefinition {
   showInGeneral?: boolean;
 }
 
-const ESTADO_GUION: PropertyDefinition = {
+/**
+ * El ciclo de vida de una pieza de contenido: nace como idea, se escribe,
+ * se graba y sale. Es una sola ficha que avanza — no cuatro cosas distintas.
+ * Las métricas recién tienen sentido en el último paso.
+ */
+const ESTADO_CONTENIDO: PropertyDefinition = {
   kind: "select",
   key: "status",
   label: "Estado",
   defaultValue: "idea",
   options: [
     { value: "idea", label: "Idea", className: "bg-white/[0.10] text-ink-2" },
-    { value: "en_desarrollo", label: "En desarrollo", className: "bg-sky-400/20 text-sky-200" },
-    { value: "listo", label: "Listo", className: "bg-violet-400/20 text-violet-200" },
-    { value: "grabado", label: "Grabado", className: "bg-emerald-400/20 text-emerald-200" },
+    { value: "guion", label: "Guión", className: "bg-sky-400/20 text-sky-200" },
+    { value: "grabado", label: "Grabado", className: "bg-violet-400/20 text-violet-200" },
+    { value: "publicado", label: "Publicado", className: "bg-emerald-400/20 text-emerald-200" },
   ],
 };
+
+/** Qué formato tiene la pieza. Cambia cómo se lee una métrica. */
+const FORMATO: PropertyDefinition = {
+  kind: "select",
+  key: "format",
+  label: "Formato",
+  defaultValue: "reel",
+  options: [
+    { value: "reel", label: "Reel", className: "bg-white/[0.10] text-ink-2" },
+    { value: "carrusel", label: "Carrusel", className: "bg-white/[0.10] text-ink-2" },
+    { value: "historia", label: "Historia", className: "bg-white/[0.10] text-ink-2" },
+    { value: "post", label: "Post", className: "bg-white/[0.10] text-ink-2" },
+    { value: "video_largo", label: "Video largo", className: "bg-white/[0.10] text-ink-2" },
+  ],
+};
+
+/**
+ * El gancho que finalmente se usó. El guión completo sigue en el cuerpo,
+ * donde podés escribir todos los ganchos y rehooks que quieras probar: este
+ * campo marca cuál quedó, para poder compararlo después con los números.
+ */
+const HOOK: PropertyDefinition = {
+  kind: "text",
+  key: "hook",
+  label: "Hook elegido",
+  placeholder: "El gancho que finalmente usaste…",
+};
+
+const CTA: PropertyDefinition = {
+  kind: "text",
+  key: "cta",
+  label: "CTA",
+  placeholder: "Qué le pedís al que mira…",
+};
+
+const TRANSCRIPCION: PropertyDefinition = {
+  kind: "text",
+  key: "transcript",
+  label: "Transcripción",
+  placeholder: "Lo que quedó dicho en el video…",
+};
+
+/** Las métricas de una pieza ya publicada. Se cargan a mano. */
+const METRICAS: PropertyDefinition[] = [
+  { kind: "number", key: "views", label: "Visualizaciones", group: "Métricas" },
+  { kind: "number", key: "likes", label: "Likes", group: "Métricas" },
+  { kind: "number", key: "comments", label: "Comentarios", group: "Métricas" },
+  { kind: "number", key: "shares", label: "Compartidos", group: "Métricas" },
+  { kind: "number", key: "saves", label: "Guardados", group: "Métricas" },
+  {
+    kind: "number",
+    key: "newFollowers",
+    label: "Seguidores generados",
+    group: "Métricas",
+  },
+  {
+    kind: "number",
+    key: "retention",
+    label: "Retención",
+    unit: "%",
+    group: "Métricas",
+  },
+];
 
 /** Notas al pie de cualquier contenido: contexto que no va en el cuerpo. */
 const NOTAS: PropertyDefinition = {
@@ -184,14 +252,25 @@ const FECHA: PropertyDefinition = {
 
 export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
   {
-    type: "guion",
-    label: "Guión",
-    labelPlural: "Guiones",
-    newLabel: "Nuevo guión",
+    type: "contenido",
+    label: "Contenido",
+    labelPlural: "Contenidos",
+    newLabel: "Nuevo contenido",
     icon: "🎬",
-    hint: "Gancho, desarrollo y CTA",
+    hint: "Una pieza, de la idea a los números",
     hasBody: true,
-    properties: [ESTADO_GUION, EMBUDO, FECHA, NOTAS],
+    properties: [
+      ESTADO_CONTENIDO,
+      FORMATO,
+      EMBUDO,
+      FECHA,
+      HOOK,
+      CTA,
+      ENLACE,
+      TRANSCRIPCION,
+      NOTAS,
+      ...METRICAS,
+    ],
     template: [
       { type: "heading", text: "Gancho" },
       { type: "text", text: "" },
@@ -200,9 +279,9 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
       { type: "heading", text: "CTA" },
       { type: "text", text: "" },
     ],
-    emptyLabel: "Todavía no hay guiones acá",
-    // Un guión sigue en juego hasta que está grabado.
-    pendingWhen: { key: "status", values: ["idea", "en_desarrollo", "listo"] },
+    emptyLabel: "Todavía no hay contenido acá",
+    // Sigue en juego hasta que sale publicado.
+    pendingWhen: { key: "status", values: ["idea", "guion", "grabado"] },
   },
   {
     type: "idea",
@@ -275,6 +354,25 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
     inlinePlaceholder: "¿Qué hay que hacer?",
     pendingWhen: { key: "status", values: ["pendiente", "en_progreso"] },
     showInGeneral: true,
+  },
+  {
+    type: "medicion",
+    label: "Medición",
+    labelPlural: "Mediciones",
+    newLabel: "Anotar seguidores",
+    icon: "📈",
+    hint: "Cuántos seguidores tenés hoy",
+    hasBody: false,
+    // Vive dentro de la plataforma que mide: los seguidores de Instagram son
+    // los de Instagram. La plataforma es la página, como en todo lo demás.
+    properties: [
+      FECHA,
+      { kind: "number", key: "followers", label: "Seguidores" },
+      NOTAS,
+    ],
+    template: [],
+    emptyLabel: "Todavía no anotaste seguidores acá",
+    inlinePlaceholder: "Ej: seguidores del 1 de septiembre…",
   },
   {
     type: "nota",

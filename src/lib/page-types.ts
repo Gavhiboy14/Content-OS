@@ -52,11 +52,51 @@ export interface UrlPropertyDefinition {
   placeholder?: string;
 }
 
+/**
+ * Un número: visualizaciones, likes, seguidores. Se guarda como texto igual
+ * que todo lo demás — `parseNumber` lo interpreta al leerlo.
+ *
+ * `unit` es lo que se muestra al lado ("%", por ejemplo) y `group` permite
+ * juntar varios en una misma sección del formulario, para que las siete
+ * métricas de un contenido no se mezclen con el resto de los campos.
+ */
+export interface NumberPropertyDefinition {
+  kind: "number";
+  key: string;
+  label: string;
+  unit?: string;
+  group?: string;
+  placeholder?: string;
+}
+
 export type PropertyDefinition =
   | SelectPropertyDefinition
   | DatePropertyDefinition
   | TextPropertyDefinition
-  | UrlPropertyDefinition;
+  | UrlPropertyDefinition
+  | NumberPropertyDefinition;
+
+/**
+ * Lee un número guardado. Devuelve null si está vacío o si quedó algo que no
+ * es un número: así quien lo use sabe distinguir "cargué un cero" de "no
+ * cargué nada", que para una métrica no es lo mismo.
+ */
+export function parseNumber(value: string | undefined): number | null {
+  if (value === undefined || value.trim() === "") return null;
+  const n = Number(value.replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Formatea un número grande de forma corta: 12500 → "12,5 mil". */
+export function formatCount(n: number): string {
+  if (Math.abs(n) >= 1_000_000) {
+    return `${(n / 1_000_000).toLocaleString("es-AR", { maximumFractionDigits: 1 })} M`;
+  }
+  if (Math.abs(n) >= 1_000) {
+    return `${(n / 1_000).toLocaleString("es-AR", { maximumFractionDigits: 1 })} mil`;
+  }
+  return n.toLocaleString("es-AR");
+}
 
 export function getPropertyOption(
   definition: SelectPropertyDefinition,

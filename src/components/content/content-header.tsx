@@ -8,6 +8,7 @@ import { getContentTypeDefinition } from "@/lib/content-types";
 import {
   getPropertyOption,
   type DatePropertyDefinition,
+  type NumberPropertyDefinition,
   type SelectPropertyDefinition,
   type TextPropertyDefinition,
   type UrlPropertyDefinition,
@@ -91,6 +92,16 @@ export function ContentHeader({ item }: { item: ContentItem }) {
                 />
               );
             }
+            if (property.kind === "number") {
+              return (
+                <PropertyNumber
+                  key={property.key}
+                  definition={property}
+                  value={value}
+                  onChange={onChange}
+                />
+              );
+            }
             return (
               <PropertyUrl
                 key={property.key}
@@ -157,6 +168,45 @@ function PropertyUrl({
           >
             <ExternalLink size={14} />
           </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Un número suelto, con guardado automático como el resto de los campos. */
+function PropertyNumber({
+  definition,
+  value,
+  onChange,
+}: {
+  definition: NumberPropertyDefinition;
+  value: string | undefined;
+  onChange: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState(value ?? "");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-3">
+        {definition.label}
+      </span>
+      <div className="flex items-center gap-1">
+        <input
+          value={draft}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            if (timer.current) clearTimeout(timer.current);
+            timer.current = setTimeout(() => onChange(e.target.value), AUTOSAVE_MS);
+          }}
+          inputMode="numeric"
+          placeholder="—"
+          aria-label={definition.label}
+          className="w-20 rounded-lg border border-line-hi bg-black/25 px-2.5 py-1 text-[13px] text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+        />
+        {definition.unit && (
+          <span className="text-[12px] text-ink-3">{definition.unit}</span>
         )}
       </div>
     </div>

@@ -7,7 +7,8 @@ import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
 import { getContentBodyAction } from "@/app/content-actions";
 import { getContentTypeDefinition } from "@/lib/content-types";
-import { getPropertyOption, parseDateKey } from "@/lib/page-types";
+import { formatCount, getPropertyOption, parseDateKey } from "@/lib/page-types";
+import { formatRate, isPublished, readMetrics } from "@/lib/metrics";
 import type { ContentItem } from "@/lib/types";
 
 interface ContentDetailModalProps {
@@ -71,6 +72,7 @@ export function ContentDetailModal({
     };
   }, [open, item.pageId, item.id]);
 
+  const metricas = isPublished(item) ? readMetrics(item) : null;
   const fecha = item.properties.date ? parseDateKey(item.properties.date) : null;
   const enlace = item.properties.url?.trim();
   const notas = item.properties.notes?.trim();
@@ -142,6 +144,43 @@ export function ContentDetailModal({
             </Dato>
           )}
         </dl>
+
+        {/* Los números sólo cuando el contenido ya salió. Las tasas se
+            calculan acá, nunca se guardan: así no pueden quedar viejas. */}
+        {metricas && (
+          <div>
+            <span className="mb-2 block font-mono text-[10px] uppercase tracking-[0.14em] text-ink-3">
+              Rendimiento
+            </span>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <Metrica
+                label="Vistas"
+                valor={metricas.views !== null ? formatCount(metricas.views) : null}
+              />
+              <Metrica
+                label="Engagement"
+                valor={formatRate(metricas.engagementRate)}
+                destacada
+              />
+              <Metrica
+                label="Seguidores"
+                valor={
+                  metricas.newFollowers !== null
+                    ? `+${formatCount(metricas.newFollowers)}`
+                    : null
+                }
+              />
+              <Metrica label="Compartidos" valor={formatRate(metricas.shareRate)} />
+              <Metrica label="Guardados" valor={formatRate(metricas.saveRate)} />
+              <Metrica
+                label="Retención"
+                valor={
+                  metricas.retention !== null ? `${metricas.retention}%` : null
+                }
+              />
+            </div>
+          </div>
+        )}
 
         {definition.hasBody && (
           <div>
@@ -219,6 +258,33 @@ export function ContentDetailModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+/** Un número del panel de rendimiento. Vacío se muestra como raya, no como cero. */
+function Metrica({
+  label,
+  valor,
+  destacada,
+}: {
+  label: string;
+  valor: string | null;
+  destacada?: boolean;
+}) {
+  return (
+    <div className="rounded-xl border border-line bg-black/20 px-3 py-2">
+      <span className="block font-mono text-[10px] uppercase tracking-[0.12em] text-ink-3">
+        {label}
+      </span>
+      <span
+        className={cn(
+          "mt-0.5 block font-display text-lg font-semibold tracking-tight",
+          valor === null ? "text-ink-3" : destacada ? "text-accent" : "text-ink"
+        )}
+      >
+        {valor ?? "—"}
+      </span>
+    </div>
   );
 }
 

@@ -20,10 +20,12 @@ import {
 } from "@/lib/content-types";
 import {
   findSelectProperty,
+  formatCount,
   getPropertyOption,
   parseDateKey,
   type SelectPropertyDefinition,
 } from "@/lib/page-types";
+import { formatRate, isPublished, readMetrics } from "@/lib/metrics";
 import { ContentDetailModal } from "./content-detail-modal";
 import { ContentFormModal } from "./content-form-modal";
 import type { ContentItem } from "@/lib/types";
@@ -47,6 +49,7 @@ export function ContentRow({
   pageId,
   pageTitle,
   canal,
+  destacado,
 }: {
   item: ContentItem;
   pageId: string;
@@ -56,6 +59,8 @@ export function ContentRow({
    * páginas: adentro de una página sola sería repetir lo mismo en cada fila.
    */
   canal?: { title: string; icon: string | null };
+  /** Es el que mejor rindió según el orden elegido. */
+  destacado?: boolean;
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -84,6 +89,11 @@ export function ContentRow({
    * Se arma recorriendo el registro y no nombrando cada una: sumar un campo
    * nuevo al tipo lo hace aparecer acá sin tocar esta fila.
    */
+  // Los números sólo aparecen en lo que ya salió: en una idea no significan
+  // nada y ensuciarían la lista.
+  const itemConEstado = { ...item, properties: props };
+  const metricas = isPublished(itemConEstado) ? readMetrics(itemConEstado) : null;
+
   const etiquetasExtra = definition.properties
     .filter(
       (p): p is SelectPropertyDefinition =>
@@ -140,9 +150,18 @@ export function ContentRow({
       <div
         className={cn(
           "group/row panel-interactive flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-xl py-2 pr-2 pl-3",
-          favorite && "border-accent/35 bg-accent/[0.07]"
+          favorite && "border-accent/35 bg-accent/[0.07]",
+          destacado && "border-accent/40 bg-accent/[0.06]"
         )}
       >
+        {destacado && (
+          <span
+            title="El que mejor rindió"
+            className="shrink-0 text-[13px] leading-none"
+          >
+            🏆
+          </span>
+        )}
         {editable ? (
           <input
             value={title}
@@ -176,6 +195,26 @@ export function ContentRow({
           <span className="flex shrink-0 items-center gap-1 rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[11px] text-ink-3">
             {canal.icon && <span className="leading-none">{canal.icon}</span>}
             {canal.title}
+          </span>
+        )}
+
+        {/* Los dos números que más dicen de un vistazo: cuánta gente lo vio
+            y qué proporción reaccionó. El resto está en el detalle. */}
+        {metricas?.views !== null && metricas !== null && (
+          <span
+            title="Visualizaciones"
+            className="shrink-0 font-mono text-[11px] text-ink-2"
+          >
+            {formatCount(metricas.views!)}
+          </span>
+        )}
+
+        {metricas && formatRate(metricas.engagementRate) && (
+          <span
+            title="Engagement"
+            className="shrink-0 font-mono text-[11px] text-accent"
+          >
+            {formatRate(metricas.engagementRate)}
           </span>
         )}
 

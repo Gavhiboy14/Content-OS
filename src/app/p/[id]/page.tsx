@@ -6,7 +6,12 @@ import type { Destino } from "@/components/content/content-form-modal";
 import { ClientDashboard } from "@/components/dashboard/client-dashboard";
 import { BlockEditor } from "@/components/editor/block-editor";
 import { getBlocks } from "@/lib/blocks";
-import { getContentForPage, getContentForPages } from "@/lib/content";
+import {
+  getAllContent,
+  getContentForPage,
+  getContentForPages,
+} from "@/lib/content";
+import { WorkspaceDashboard } from "@/components/dashboard/workspace-dashboard";
 import {
   CONTENT_TYPE_ORDER,
   getContentTypeDefinition,
@@ -47,7 +52,9 @@ export default async function PageView({
       <div className="mx-auto max-w-4xl px-6 pt-20 pb-24 sm:px-10 lg:px-12 lg:pt-12">
         <Ruta page={page} ancestors={ancestors} />
 
-        {children.length > 0 ? (
+        {page.type === "home" ? (
+          <PortadaDelWorkspace page={page} pages={pages} />
+        ) : children.length > 0 ? (
           <DashboardDeCliente
             page={page}
             subpages={children}
@@ -84,6 +91,53 @@ function Ruta({ page, ancestors }: { page: Page; ancestors: Page[] }) {
         </span>
       ))}
     </nav>
+  );
+}
+
+/**
+ * La página de Inicio es la portada de todo el workspace: cruza los datos de
+ * todos los clientes. Debajo conserva su bloc de notas, que ya estaba.
+ */
+async function PortadaDelWorkspace({
+  page,
+  pages,
+}: {
+  page: Page;
+  pages: Page[];
+}) {
+  const [items, blocks] = await Promise.all([
+    getAllContent(),
+    getBlocks({ pageId: page.id, contentItemId: null }),
+  ]);
+
+  return (
+    <>
+      <header className="mb-9">
+        <div className="flex items-start gap-3.5">
+          <span className="mt-0.5 text-3xl leading-none">{page.icon}</span>
+          <div>
+            <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">
+              {page.title}
+            </h1>
+            <p className="mt-1.5 text-sm text-ink-2">
+              Cómo viene todo, de un vistazo.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <WorkspaceDashboard pages={pages} items={items} />
+
+      <section className="mt-12 border-t border-line pt-8">
+        <h2 className="mb-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3">
+          Notas de la página
+        </h2>
+        <BlockEditor
+          owner={{ pageId: page.id, contentItemId: null }}
+          initialBlocks={blocks}
+        />
+      </section>
+    </>
   );
 }
 

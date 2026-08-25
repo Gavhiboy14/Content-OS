@@ -55,6 +55,21 @@ export async function getContentForPages(
 }
 
 /**
+ * Todo el contenido del workspace, de cualquier tipo y cualquier página.
+ * Es lo que mira la portada de Inicio para cruzar clientes.
+ */
+export async function getAllContent(): Promise<ContentItem[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("content_items")
+    .select("*")
+    .order("updated_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapRow);
+}
+
+/**
  * Todo el contenido de un tipo, de cualquier página. Alimenta las vistas
  * globales del sidebar: todas las tareas, todas las ideas.
  */

@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 import { ContentRow } from "@/components/content/content-row";
 import { groupByDue, type ContentGroup } from "@/lib/dashboard";
+import { bestBy, sortByMetric, SORT_OPTIONS, type SortKey } from "@/lib/metrics";
 import { getContentTypeDefinition } from "@/lib/content-types";
 import type { SelectPropertyDefinition } from "@/lib/page-types";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,14 @@ export function ContentList({
   const [busqueda, setBusqueda] = useState("");
   /** Qué valor se eligió en cada filtro. Sin entrada = ese filtro está libre. */
   const [filtros, setFiltros] = useState<Record<string, string>>({});
+  const [orden, setOrden] = useState<SortKey>("date");
+
+  // Ordenar por números sólo tiene sentido donde los hay.
+  const tieneMetricas = type
+    ? getContentTypeDefinition(type).properties.some(
+        (p) => p.kind === "number" && p.group === "Métricas"
+      )
+    : false;
 
   const porId = useMemo(
     () => new Map(pages.map((p) => [p.id, p])),
@@ -92,9 +101,23 @@ export function ContentList({
     });
   }, [items, busqueda, filtros, type]);
 
-  const grupos = useMemo(
-    () => agrupar(filtrados, groupBy, porId),
-    [filtrados, groupBy, porId]
+  /**
+   * Al ordenar por una métrica la lista se muestra plana: agrupar por página
+   * o por vencimiento partiría el ranking en pedazos y ya no se vería quién
+   * rindió mejor de todos.
+   */
+  const ordenadoPorMetrica = orden !== "date";
+
+  const grupos = useMemo(() => {
+    if (!ordenadoPorMetrica) return agrupar(filtrados, groupBy, porId);
+    return [
+      { key: "ranking", label: "", items: sortByMetric(filtrados, orden) },
+    ];
+  }, [filtrados, groupBy, porId, orden, ordenadoPorMetrica]);
+
+  const ganador = useMemo(
+    () => (ordenadoPorMetrica ? bestBy(filtrados, orden) : null),
+    [filtrados, orden, ordenadoPorMetrica]
   );
 
   function alternarFiltro(key: string, valor: string) {
@@ -142,7 +165,44 @@ export function ContentList({
       {/* Un renglón por campo, con su nombre adelante. Con dos filtros
           (estado y embudo) sin etiqueta no se entendería a qué corresponde
           cada grupo de pastillas. */}
-      {filtrosDisponibles.map((prop) => (
+      {tieneMetricas && (
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="mr-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-3">
+            Orden
+          </span>
+          {SORT_OPTIONS.map((o) => (
+            <FiltroChip
+              key={o.value}
+              activo={orden === o.value}
+              onClick={() => setOrden(o.value)}
+              label={o.label}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Los filtros van plegados. Desplegados ocupaban más de media pantalla
+          de teléfono y el contenido, que es lo que se viene a ver, quedaba
+          empujado abajo del todo. El contador avisa cuántos están puestos,
+          para que no queden filtros activos sin que se note. */}
+      {filtrosDisponibles.length > 0 && (
+        <details className="group/filtros">
+          <summary className="tap-target inline-flex cursor-pointer list-none items-center gap-1.5 rounded-xl px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-3 transition-colors hover:text-ink-2 marker:content-['']">
+            <SlidersHorizontal size={12} />
+            Filtros
+            {Object.keys(filtros).length > 0 && (
+              <span className="rounded-md bg-accent/20 px-1.5 py-0.5 text-accent">
+                {Object.keys(filtros).length}
+              </span>
+            )}
+            <ChevronDown
+              size={12}
+              className="transition-transform group-open/filtros:rotate-180"
+            />
+          </summary>
+
+          <div className="mt-2 flex flex-col gap-2">
+            {filtrosDisponibles.map((prop) => (
         <div key={prop.key} className="flex flex-wrap items-center gap-1">
           <span className="mr-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-3">
             {prop.label}
@@ -167,8 +227,11 @@ export function ContentList({
               className={o.className}
             />
           ))}
-        </div>
-      ))}
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
 
       {grupos.length === 0 ? (
         <p className="panel rounded-2xl px-6 py-10 text-center text-sm text-ink-2">
@@ -201,6 +264,7 @@ export function ContentList({
                           ? { title: pagina.title, icon: pagina.icon }
                           : undefined
                       }
+                      destacado={item.id === ganador}
                     />
                   );
                 })}
