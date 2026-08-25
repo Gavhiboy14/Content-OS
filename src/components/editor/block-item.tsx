@@ -123,7 +123,11 @@ export function BlockItem({
       <div
         className={cn(
           "flex items-center gap-0.5 pt-1 transition-opacity",
-          "lg:absolute lg:-left-14 lg:opacity-0 lg:focus-within:opacity-100 lg:group-hover/block:opacity-100"
+          // La posición depende del ancho (recién en pantalla grande hay un
+          // margen izquierdo donde meterlos); la visibilidad depende de si
+          // hay mouse, que es lo que puede revelarlos.
+          "lg:absolute lg:-left-14",
+          "pointer-fine:opacity-0 pointer-fine:focus-within:opacity-100 pointer-fine:group-hover/block:opacity-100"
         )}
       >
         <div className="relative">

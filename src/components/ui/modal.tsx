@@ -44,8 +44,13 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       />
       {/* La curva es la de Apple: entra rápido y frena largo, así el panel
           se siente con peso en vez de aparecer de golpe. */}
+      {/* La altura se limita a la pantalla y el panel scrollea por dentro.
+          Sin esto, un formulario largo en un teléfono corto se salía por
+          arriba y por abajo, y no había manera de llegar al botón de
+          guardar. `dvh` en vez de `vh` para que cuente la barra del
+          navegador del celular, que aparece y desaparece. */}
       <motion.div
-        className="surface-raised relative w-full max-w-sm rounded-2xl p-5"
+        className="surface-raised relative max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto rounded-2xl p-5"
         animate={
           open
             ? { opacity: 1, scale: 1, y: 0 }

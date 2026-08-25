@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type {
   CreatePageInput,
@@ -38,7 +39,18 @@ function slugify(title: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-export async function getAllPages(): Promise<Page[]> {
+/**
+ * Todas las páginas del workspace.
+ *
+ * Va envuelta en `cache` porque una misma pantalla la pide varias veces: el
+ * sidebar la necesita para el árbol, y la página para su ruta y sus
+ * subpáginas. Sin esto se consultaba lo mismo hasta tres veces por
+ * navegación, y cada viaje a la base cuesta cientos de milisegundos.
+ *
+ * El memo dura lo que dura un pedido: no se comparte entre visitantes ni
+ * queda viejo tras una edición.
+ */
+export const getAllPages = cache(async function getAllPages(): Promise<Page[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("pages")
@@ -47,7 +59,7 @@ export async function getAllPages(): Promise<Page[]> {
 
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapRow);
-}
+});
 
 export function buildPageTree(pages: Page[]): PageNode[] {
   const byId = new Map<string, PageNode>();
@@ -145,10 +157,21 @@ export function subtreeIds(pages: Page[], rootId: string): string[] {
  * cada nivel de la ruta por separado hacía un viaje a la base por cada
  * subpágina anidada.
  */
-export async function getPageContext(
+export interface PageContext {
+  page: Page;
+  ancestors: Page[];
+  children: Page[];
+}
+
+/**
+ * La misma armada, pero sobre una lista de páginas que ya se tiene en la
+ * mano. Sirve cuando la pantalla las pidió por su cuenta para poder hacerlo
+ * en paralelo con otra consulta.
+ */
+export function pageContextFrom(
+  pages: Page[],
   id: string
-): Promise<{ page: Page; ancestors: Page[]; children: Page[] } | null> {
-  const pages = await getAllPages();
+): PageContext | null {
   const byId = new Map(pages.map((p) => [p.id, p]));
 
   const page = byId.get(id);
@@ -168,6 +191,10 @@ export async function getPageContext(
     .sort((a, b) => a.position - b.position);
 
   return { page, ancestors, children };
+}
+
+export async function getPageContext(id: string): Promise<PageContext | null> {
+  return pageContextFrom(await getAllPages(), id);
 }
 
 async function nextPosition(

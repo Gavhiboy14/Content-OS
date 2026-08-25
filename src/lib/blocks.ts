@@ -48,6 +48,27 @@ export async function getBlocks(owner: BlockOwner): Promise<Block[]> {
 }
 
 /**
+ * Los bloques del cuerpo de un contenido, buscados sólo por su id.
+ *
+ * A diferencia de `getBlocks`, no necesita saber en qué página vive: eso
+ * permite pedirlos en paralelo con el contenido mismo, en vez de esperar a
+ * tenerlo para recién ahí saber su página. La columna tiene índice propio.
+ */
+export async function getBlocksForContentItem(
+  contentItemId: string
+): Promise<Block[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("blocks")
+    .select("*")
+    .eq("content_item_id", contentItemId)
+    .order("position", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapRow);
+}
+
+/**
  * Crea un bloque. Si se pasa `afterBlockId`, queda justo debajo de ese
  * bloque; si no, va al final.
  */

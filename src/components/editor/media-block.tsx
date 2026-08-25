@@ -44,7 +44,7 @@ export function MediaBlock({ block, onChange, onDelete }: MediaBlockProps) {
           onClick={onDelete}
           aria-label="Quitar"
           title="Quitar"
-          className="absolute top-2 right-2 rounded-lg bg-black/60 p-1.5 text-ink-2 opacity-0 backdrop-blur-sm transition hover:text-ink focus-visible:opacity-100 group-hover/media:opacity-100"
+          className="tap-target absolute top-2 right-2 rounded-lg bg-black/60 p-1.5 text-ink-2 backdrop-blur-sm transition hover:text-ink pointer-fine:opacity-0 pointer-fine:focus-visible:opacity-100 pointer-fine:group-hover/media:opacity-100"
         >
           <Trash2 size={13} />
         </button>

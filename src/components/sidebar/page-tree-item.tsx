@@ -72,7 +72,7 @@ export function PageTreeItem({
         <button
           onClick={onToggleExpand}
           className={cn(
-            "flex h-5 w-5 shrink-0 items-center justify-center rounded text-ink-3 transition-colors hover:text-ink",
+            "tap-target flex h-5 w-5 shrink-0 items-center justify-center rounded text-ink-3 transition-colors hover:text-ink",
             !hasChildren && "pointer-events-none opacity-0"
           )}
           tabIndex={hasChildren ? 0 : -1}
@@ -99,10 +99,12 @@ export function PageTreeItem({
         </Link>
 
         {/* Dos acciones: crear subpágina (la más usada) y el resto en un menú */}
-        <div className="flex shrink-0 items-center gap-px opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover/row:opacity-100">
+        {/* Igual que en las filas de contenido: escondidos tras el mouse sólo
+            donde hay mouse. En pantalla táctil quedan siempre a la vista. */}
+        <div className="flex shrink-0 items-center gap-px transition-opacity duration-150 pointer-fine:opacity-0 pointer-fine:focus-within:opacity-100 pointer-fine:group-hover/row:opacity-100">
           <button
             onClick={onAddChild}
-            className="rounded-md p-1 text-ink-3 transition-colors hover:bg-white/[0.10] hover:text-ink"
+            className="tap-target rounded-md p-1 text-ink-3 transition-colors hover:bg-white/[0.10] hover:text-ink"
             aria-label={`Nueva subpágina en ${node.title}`}
             title="Nueva subpágina"
           >
@@ -115,7 +117,7 @@ export function PageTreeItem({
               aria-expanded={menuOpen}
               aria-label={`Opciones de ${node.title}`}
               title="Opciones"
-              className="rounded-md p-1 text-ink-3 transition-colors hover:bg-white/[0.10] hover:text-ink"
+              className="tap-target rounded-md p-1 text-ink-3 transition-colors hover:bg-white/[0.10] hover:text-ink"
             >
               <MoreHorizontal size={13} />
             </button>

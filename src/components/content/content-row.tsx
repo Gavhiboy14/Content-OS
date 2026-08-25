@@ -233,12 +233,17 @@ export function ContentRow({
           </a>
         )}
 
+        {/* `ms-auto` lo empuja al extremo derecho de su renglón. En el
+            teléfono los datos bajan a una segunda línea y, sin esto, el menú
+            quedaba pegado a la izquierda — y como su desplegable se cuelga
+            del borde derecho del botón, se salía de la pantalla. */}
         <RowMenu
           itemId={item.id}
           label={definition.label}
           onDetail={() => setDetailOpen(true)}
           onEdit={() => setEditOpen(true)}
           onDelete={() => setConfirmOpen(true)}
+          className="ms-auto"
         />
       </div>
 
@@ -295,23 +300,28 @@ function RowMenu({
   onDetail,
   onEdit,
   onDelete,
+  className,
 }: {
   itemId: string;
   label: string;
   onDetail: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative shrink-0">
+    <div className={cn("relative shrink-0", className)}>
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={`Opciones de ${label.toLowerCase()}`}
         title="Opciones"
-        className="rounded-md p-1 text-ink-3 opacity-0 transition-all hover:bg-white/[0.08] hover:text-ink focus-visible:opacity-100 group-hover/row:opacity-100"
+        // Se esconde hasta acercar el mouse sólo donde hay mouse (`pointer-fine`),
+        // no según el ancho: una tablet grande es ancha y táctil a la vez, y
+        // ahí esconderlo lo dejaba imposible de abrir.
+        className="tap-target rounded-md p-1 text-ink-3 transition-all hover:bg-white/[0.08] hover:text-ink pointer-fine:opacity-0 pointer-fine:focus-visible:opacity-100 pointer-fine:group-hover/row:opacity-100"
       >
         <MoreHorizontal size={14} />
       </button>

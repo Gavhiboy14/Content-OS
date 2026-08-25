@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { ContentHeader } from "@/components/content/content-header";
 import { MarkActivePage } from "@/components/content/mark-active-page";
 import { BlockEditor } from "@/components/editor/block-editor";
-import { createBlock, getBlocks } from "@/lib/blocks";
+import { createBlock, getBlocksForContentItem } from "@/lib/blocks";
 import { getContentItem } from "@/lib/content";
 import { getContentTypeDefinition } from "@/lib/content-types";
-import { getPageContext } from "@/lib/pages";
+import { getAllPages, pageContextFrom } from "@/lib/pages";
 
 export default async function ContentItemView({
   params,
@@ -14,15 +14,20 @@ export default async function ContentItemView({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const item = await getContentItem(id);
+
+  // Las tres cosas se piden a la vez. Antes se esperaba el contenido para
+  // recién entonces saber su página y pedir el resto: eran dos viajes a la
+  // base uno detrás del otro, y cada uno cuesta.
+  const [item, existingBlocks, pages] = await Promise.all([
+    getContentItem(id),
+    getBlocksForContentItem(id),
+    getAllPages(),
+  ]);
   if (!item) notFound();
 
   const definition = getContentTypeDefinition(item.type);
 
-  const [context, existingBlocks] = await Promise.all([
-    getPageContext(item.pageId),
-    getBlocks({ pageId: item.pageId, contentItemId: id }),
-  ]);
+  const context = pageContextFrom(pages, item.pageId);
   if (!context) notFound();
   const { page, ancestors } = context;
 

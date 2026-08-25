@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ArrowUpRight, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { cn } from "@/lib/utils";
@@ -185,15 +186,19 @@ export function ContentDetailModal({
         )}
 
         <div className="mt-1 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
-          <a
+          {/* Va con Link y en la misma pestaña: así el navegador ya trae la
+              página mientras el mouse está encima y al hacer clic entra al
+              toque. Con un <a> normal era una carga completa desde cero, que
+              es lo que se sentía lento. Para abrirlo aparte sigue estando la
+              opción en el menú "…" de la fila. */}
+          <Link
             href={`/c/${item.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={onClose}
             className="btn-soft flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[13px]"
           >
             <ArrowUpRight size={13} />
             Abrir completo
-          </a>
+          </Link>
 
           <div className="flex items-center gap-2">
             <button

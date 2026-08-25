@@ -392,7 +392,7 @@ function TituloDeGrupo({
       {onAdd && (
         <button
           onClick={onAdd}
-          className="rounded p-0.5 text-ink-3 opacity-0 transition hover:text-ink focus-visible:opacity-100 group-hover/section:opacity-100"
+          className="tap-target rounded text-ink-3 transition hover:text-ink pointer-fine:opacity-0 pointer-fine:focus-visible:opacity-100 pointer-fine:group-hover/section:opacity-100"
           aria-label={addLabel}
         >
           <Plus size={12} />

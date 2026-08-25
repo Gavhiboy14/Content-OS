@@ -209,6 +209,26 @@ body::before {
     background-color: var(--color-accent);
   }
 
+  /* Botón de ícono. Agranda el área de toque sin agrandar el ícono: un
+     control de 20px es imposible de acertar con el pulgar.
+     El criterio es el puntero, no el ancho: una tablet grande es ancha y
+     táctil a la vez, y ahí sigue haciendo falta el área generosa. Donde hay
+     mouse vuelve a su tamaño natural, porque el mouse es preciso. */
+  .tap-target {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+
+  @media (pointer: fine) {
+    .tap-target {
+      min-width: 0;
+      min-height: 0;
+    }
+  }
+
   /* Pastilla de estado: el color lo pone cada estado; esto le agrega el
      canto de cristal para que no se lea como un rectángulo plano. */
   .chip {

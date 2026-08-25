@@ -91,7 +91,14 @@ export function AddContentButton({
                 onClick={() => setMenuOpen(false)}
                 aria-hidden="true"
               />
-              <div className="surface-raised absolute top-10 right-0 z-20 w-60 overflow-hidden rounded-xl p-1">
+              {/* Dos arreglos de encuadre:
+                  · Alto: con todos los tipos la lista pasaba los 600px y no
+                    entraba en un teléfono corto. Ahora se limita y scrollea.
+                  · Lado: se colgaba del borde derecho del botón. En pantalla
+                    angosta ese botón está a la izquierda, así que el menú se
+                    salía por fuera de la pantalla y esa parte no se podía
+                    tocar. Abajo de `sm` se cuelga del borde izquierdo. */}
+              <div className="surface-raised absolute top-10 right-0 z-20 max-h-[min(70vh,26rem)] w-[min(15rem,calc(100vw-2.5rem))] overflow-y-auto rounded-xl p-1 max-sm:right-auto max-sm:left-0">
                 {CONTENT_TYPE_DEFINITIONS.map((definition) => (
                   <button
                     key={definition.type}
