@@ -58,9 +58,11 @@ export function countPending(items: ContentItem[]): number {
 }
 
 /**
- * Avance del plan del mes: publicaciones que ya salieron, con fecha dentro
- * del mes que se está mirando. Es la definición que acordamos — lo que
- * cuenta es lo publicado, no lo creado.
+ * Avance del plan del mes: contenido que ya salió, con fecha dentro del mes
+ * que se está mirando. Lo que cuenta es lo publicado, no lo creado.
+ *
+ * Antes miraba el tipo "publicación", que se retiró: ahora publicar es un
+ * estado del contenido, no una ficha aparte.
  */
 export function monthProgress(
   items: ContentItem[],
@@ -69,8 +71,8 @@ export function monthProgress(
   const prefijo = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   return items.filter(
     (i) =>
-      i.type === "publicacion" &&
-      i.properties.status === "publicada" &&
+      i.type === "contenido" &&
+      i.properties.status === "publicado" &&
       (i.properties.date ?? "").startsWith(prefijo)
   ).length;
 }

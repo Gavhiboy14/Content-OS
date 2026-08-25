@@ -156,17 +156,6 @@ const ESTADO_IDEA: PropertyDefinition = {
   ],
 };
 
-const ESTADO_PUBLICACION: PropertyDefinition = {
-  kind: "select",
-  key: "status",
-  label: "Estado",
-  defaultValue: "programada",
-  options: [
-    { value: "programada", label: "Programada", className: "bg-white/[0.10] text-ink-2" },
-    { value: "publicada", label: "Publicada", className: "bg-emerald-400/20 text-emerald-200" },
-  ],
-};
-
 const ESTADO_TAREA: PropertyDefinition = {
   kind: "select",
   key: "status",
@@ -327,19 +316,9 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
     inlinePlaceholder: "Nombre de la referencia…",
     showInGeneral: true,
   },
-  {
-    type: "publicacion",
-    label: "Publicación",
-    labelPlural: "Publicaciones",
-    newLabel: "Nueva publicación",
-    icon: "📸",
-    hint: "Algo que ya salió o está programado",
-    hasBody: true,
-    properties: [ESTADO_PUBLICACION, FECHA, ENLACE, NOTAS],
-    template: [],
-    emptyLabel: "Nada publicado ni programado",
-    pendingWhen: { key: "status", values: ["programada"] },
-  },
+  // "Publicación" se retiró: era una ficha aparte para algo que ya salió,
+  // y ahora eso es simplemente un Contenido en estado Publicado. Tener las
+  // dos cosas obligaba a elegir entre caminos que terminaban en lo mismo.
   {
     type: "tarea",
     label: "Tarea",
