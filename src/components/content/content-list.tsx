@@ -5,7 +5,7 @@ import { Search, X } from "lucide-react";
 import { ContentRow } from "@/components/content/content-row";
 import { groupByDue, type ContentGroup } from "@/lib/dashboard";
 import { getContentTypeDefinition } from "@/lib/content-types";
-import { findSelectProperty } from "@/lib/page-types";
+import type { SelectPropertyDefinition } from "@/lib/page-types";
 import { cn } from "@/lib/utils";
 import type { ContentItem } from "@/lib/types";
 
@@ -44,23 +44,44 @@ export function ContentList({
   emptyLabel,
 }: ContentListProps) {
   const [busqueda, setBusqueda] = useState("");
-  const [estado, setEstado] = useState<string | null>(null);
+  /** Qué valor se eligió en cada filtro. Sin entrada = ese filtro está libre. */
+  const [filtros, setFiltros] = useState<Record<string, string>>({});
 
   const porId = useMemo(
     () => new Map(pages.map((p) => [p.id, p])),
     [pages]
   );
 
-  // El filtro de estado sale del tipo, no de una lista escrita acá: si un
-  // tipo suma un estado, aparece solo.
-  const estados = type
-    ? findSelectProperty(getContentTypeDefinition(type).properties, "status")
-    : undefined;
+  /**
+   * Los filtros salen de las listas que declara el tipo — estado, embudo, y
+   * las que se sumen — sin nombrar ninguna acá.
+   *
+   * Se muestran siempre y con todas sus opciones, aunque por ahora ningún
+   * contenido las use: además de filtrar, dejan a la vista el vocabulario
+   * disponible. Esconderlas cuando todos comparten el mismo valor hacía que
+   * los filtros aparecieran y desaparecieran solos, que desconcierta.
+   */
+  const filtrosDisponibles = useMemo(() => {
+    if (!type) return [];
+    return getContentTypeDefinition(type).properties.filter(
+      (p): p is SelectPropertyDefinition => p.kind === "select"
+    );
+  }, [type]);
 
   const filtrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
+    const definition = type ? getContentTypeDefinition(type) : null;
+
     return items.filter((i) => {
-      if (estado && i.properties.status !== estado) return false;
+      for (const [key, elegido] of Object.entries(filtros)) {
+        const prop = definition?.properties.find(
+          (p): p is SelectPropertyDefinition => p.kind === "select" && p.key === key
+        );
+        // Lo que nunca se tocó cuenta como su valor inicial, así "Sin definir"
+        // encuentra justamente lo que falta clasificar.
+        const actual = i.properties[key] ?? prop?.defaultValue;
+        if (actual !== elegido) return false;
+      }
       if (!texto) return true;
       // Busca en el título y en las notas: muchas veces el dato que uno
       // recuerda quedó anotado al costado, no en el título.
@@ -69,14 +90,24 @@ export function ContentList({
         (i.properties.notes ?? "").toLowerCase().includes(texto)
       );
     });
-  }, [items, busqueda, estado]);
+  }, [items, busqueda, filtros, type]);
 
   const grupos = useMemo(
     () => agrupar(filtrados, groupBy, porId),
     [filtrados, groupBy, porId]
   );
 
-  const hayFiltro = busqueda.trim().length > 0 || estado !== null;
+  function alternarFiltro(key: string, valor: string) {
+    setFiltros((prev) => {
+      const next = { ...prev };
+      if (next[key] === valor) delete next[key];
+      else next[key] = valor;
+      return next;
+    });
+  }
+
+  const hayFiltro =
+    busqueda.trim().length > 0 || Object.keys(filtros).length > 0;
   // Mostrar canal sólo tiene sentido si las filas vienen de páginas distintas.
   const mostrarCanal = groupBy !== "page" && porId.size > 1;
 
@@ -106,25 +137,38 @@ export function ContentList({
           )}
         </div>
 
-        {estados && (
-          <div className="flex flex-wrap items-center gap-1">
-            <FiltroChip
-              activo={estado === null}
-              onClick={() => setEstado(null)}
-              label="Todos"
-            />
-            {estados.options.map((o) => (
-              <FiltroChip
-                key={o.value}
-                activo={estado === o.value}
-                onClick={() => setEstado(estado === o.value ? null : o.value)}
-                label={o.label}
-                className={o.className}
-              />
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* Un renglón por campo, con su nombre adelante. Con dos filtros
+          (estado y embudo) sin etiqueta no se entendería a qué corresponde
+          cada grupo de pastillas. */}
+      {filtrosDisponibles.map((prop) => (
+        <div key={prop.key} className="flex flex-wrap items-center gap-1">
+          <span className="mr-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-3">
+            {prop.label}
+          </span>
+          <FiltroChip
+            activo={filtros[prop.key] === undefined}
+            onClick={() =>
+              setFiltros((prev) => {
+                const next = { ...prev };
+                delete next[prop.key];
+                return next;
+              })
+            }
+            label="Todos"
+          />
+          {prop.options.map((o) => (
+            <FiltroChip
+              key={o.value}
+              activo={filtros[prop.key] === o.value}
+              onClick={() => alternarFiltro(prop.key, o.value)}
+              label={o.label}
+              className={o.className}
+            />
+          ))}
+        </div>
+      ))}
 
       {grupos.length === 0 ? (
         <p className="panel rounded-2xl px-6 py-10 text-center text-sm text-ink-2">
