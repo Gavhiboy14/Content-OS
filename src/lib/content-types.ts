@@ -112,6 +112,43 @@ const ESTADO_TAREA: PropertyDefinition = {
 };
 
 /**
+ * En qué parte del embudo juega un contenido: si va a buscar gente nueva
+ * (TOFU), a calentar a quien ya te sigue (MOFU) o a cerrar la venta (BOFU).
+ *
+ * Nace "sin definir" a propósito: es preferible que un guión no tenga etapa
+ * a que arranque con una que quizás no le corresponde. Mientras esté sin
+ * definir, la fila no muestra ninguna etiqueta.
+ */
+const EMBUDO: PropertyDefinition = {
+  kind: "select",
+  key: "funnel",
+  label: "Embudo",
+  defaultValue: "sin_definir",
+  options: [
+    {
+      value: "sin_definir",
+      label: "Sin definir",
+      className: "bg-white/[0.06] text-ink-3",
+    },
+    {
+      value: "tofu",
+      label: "TOFU",
+      className: "bg-cyan-400/20 text-cyan-200",
+    },
+    {
+      value: "mofu",
+      label: "MOFU",
+      className: "bg-amber-400/20 text-amber-200",
+    },
+    {
+      value: "bofu",
+      label: "BOFU",
+      className: "bg-emerald-400/20 text-emerald-200",
+    },
+  ],
+};
+
+/**
  * Qué tan urgente es algo. Se usa para ordenar las listas de gestión: lo alto
  * primero. Nace en "media" para que nada quede sin prioridad por olvido.
  */
@@ -154,7 +191,7 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
     icon: "🎬",
     hint: "Gancho, desarrollo y CTA",
     hasBody: true,
-    properties: [ESTADO_GUION, FECHA, NOTAS],
+    properties: [ESTADO_GUION, EMBUDO, FECHA, NOTAS],
     template: [
       { type: "heading", text: "Gancho" },
       { type: "text", text: "" },

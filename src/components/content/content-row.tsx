@@ -22,6 +22,7 @@ import {
   findSelectProperty,
   getPropertyOption,
   parseDateKey,
+  type SelectPropertyDefinition,
 } from "@/lib/page-types";
 import { ContentDetailModal } from "./content-detail-modal";
 import { ContentFormModal } from "./content-form-modal";
@@ -72,15 +73,24 @@ export function ContentRow({
   const isHook = item.type === "hook";
   const favorite = props.favorite === "true";
   const status = findSelectProperty(definition.properties, "status");
-  const prioridad = findSelectProperty(definition.properties, "priority");
   const enlace = props.url?.trim();
   const fecha = props.date ? parseDateKey(props.date) : null;
-  // La prioridad se muestra sólo cuando dice algo: "Media" es el valor con el
-  // que nace todo, y repetirlo en cada fila sería ruido.
-  const prioridadVisible =
-    prioridad && props.priority && props.priority !== prioridad.defaultValue
-      ? getPropertyOption(prioridad, props.priority)
-      : null;
+
+  /**
+   * Las demás listas del tipo — prioridad, embudo, y las que se sumen —
+   * se muestran sólo cuando dicen algo. Con su valor por defecto serían la
+   * misma etiqueta repetida en todas las filas, que no informa nada.
+   *
+   * Se arma recorriendo el registro y no nombrando cada una: sumar un campo
+   * nuevo al tipo lo hace aparecer acá sin tocar esta fila.
+   */
+  const etiquetasExtra = definition.properties
+    .filter(
+      (p): p is SelectPropertyDefinition =>
+        p.kind === "select" && p.key !== "status"
+    )
+    .filter((p) => props[p.key] && props[p.key] !== p.defaultValue)
+    .map((p) => ({ key: p.key, option: getPropertyOption(p, props[p.key]) }));
   // Una tarea completada (o una idea descartada) se muestra tachada.
   const cerrado = Boolean(status) && !isPendingContent(item.type, props);
 
@@ -175,16 +185,17 @@ export function ContentRow({
           </span>
         )}
 
-        {prioridadVisible && (
+        {etiquetasExtra.map(({ key, option }) => (
           <span
+            key={key}
             className={cn(
               "chip shrink-0 rounded-md px-2 py-0.5 text-[11px]",
-              prioridadVisible.className
+              option.className
             )}
           >
-            {prioridadVisible.label}
+            {option.label}
           </span>
-        )}
+        ))}
 
         {status && (
           <span
