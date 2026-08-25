@@ -8,8 +8,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { Plus } from "lucide-react";
 import { BlockItem } from "./block-item";
-import { matchMarkdownShortcut } from "./block-registry";
+import { BLOCK_DEFINITIONS, matchMarkdownShortcut } from "./block-registry";
 import {
   createBlockAction,
   deleteBlockAction,
@@ -23,6 +24,7 @@ import {
   type Block,
   type BlockContent,
   type BlockType,
+  type ImageSize,
 } from "@/lib/types";
 
 const AUTOSAVE_MS = 600;
@@ -149,7 +151,7 @@ export function BlockEditor({ owner, initialBlocks }: BlockEditorProps) {
 
   function handleMediaChange(
     block: Block,
-    content: { url: string; caption: string }
+    content: { url: string; caption: string; size?: ImageSize }
   ) {
     patchLocal(block.id, (b) => ({ ...b, content }));
     scheduleSave(block.id, { content });
@@ -163,12 +165,13 @@ export function BlockEditor({ owner, initialBlocks }: BlockEditorProps) {
     scheduleSave(block.id, { content });
   }
 
-  function createAfter(block: Block | null) {
+  function createAfter(block: Block | null, tipoPedido?: BlockType) {
     // Los tipos que se escriben en tanda (listas, tareas) siguen con otro
-    // igual; el resto vuelve a texto.
+    // igual; el resto vuelve a texto. Si se pidió un tipo puntual (desde el
+    // botón de agregar), manda ese.
     const CONTINUES: BlockType[] = ["bulleted_list", "todo"];
     const inheritType =
-      block && CONTINUES.includes(block.type) ? block.type : "text";
+      tipoPedido ?? (block && CONTINUES.includes(block.type) ? block.type : "text");
 
     const tempId = `temp-${crypto.randomUUID()}`;
     const now = new Date().toISOString();
@@ -345,6 +348,7 @@ export function BlockEditor({ owner, initialBlocks }: BlockEditorProps) {
               text={textOf(block)}
               onTextChange={(text) => handleTextChange(block, text)}
               onTypeChange={(type) => handleTypeChange(block, type)}
+              onAddBelow={(type) => createAfter(block, type)}
               onToggleChecked={() => handleToggleChecked(block)}
               onMediaChange={(content) => handleMediaChange(block, content)}
               onDelete={() => handleDelete(block)}
@@ -371,12 +375,71 @@ export function BlockEditor({ owner, initialBlocks }: BlockEditorProps) {
         {dropIndex === blocks.length && <DropLine />}
       </div>
 
-      {/* Zona clickeable debajo del último bloque, como en Notion */}
+      {/* Zona clickeable debajo del último bloque, como en Notion: seguir
+          escribiendo con sólo tocar el vacío. */}
       <button
         onClick={() => createAfter(blocks[blocks.length - 1] ?? null)}
-        className="mt-1 h-16 w-full cursor-text text-left text-[15px] text-transparent"
-        aria-label="Agregar un bloque al final"
+        className="mt-1 h-10 w-full cursor-text text-left text-[15px] text-transparent"
+        aria-label="Seguir escribiendo"
       />
+
+      {/* Botón visible con los tipos. Sin esto, en una página sin bloques no
+          había nada que tocar: la zona de arriba es transparente y el "+"
+          de cada bloque sólo existe si ya hay un bloque. Así, subir una
+          imagen deja de ser un secreto. */}
+      <AgregarBloque
+        onElegir={(type) => createAfter(blocks[blocks.length - 1] ?? null, type)}
+      />
+    </div>
+  );
+}
+
+/** Menú visible para sumar un bloque eligiendo su tipo. */
+function AgregarBloque({
+  onElegir,
+}: {
+  onElegir: (type: BlockType) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative mt-1">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="btn-soft flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[13px]"
+      >
+        <Plus size={14} />
+        Agregar bloque
+      </button>
+
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="surface-raised absolute bottom-10 left-0 z-20 w-48 overflow-hidden rounded-xl p-1">
+            {BLOCK_DEFINITIONS.map((def) => {
+              const Icon = def.icon;
+              return (
+                <button
+                  key={def.type}
+                  onClick={() => {
+                    setOpen(false);
+                    onElegir(def.type);
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-ink-2 transition-colors hover:bg-white/[0.06] hover:text-ink"
+                >
+                  <Icon size={13} className="shrink-0 text-ink-3" />
+                  {def.label}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -92,13 +92,25 @@ export const BLOCK_TYPES = [
 
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
+/** Cuánto ancho ocupa una imagen. Se guarda en el bloque. */
+export const IMAGE_SIZES = ["s", "m", "l"] as const;
+export type ImageSize = (typeof IMAGE_SIZES)[number];
+
+export function isImageSize(value: string): value is ImageSize {
+  return (IMAGE_SIZES as readonly string[]).includes(value);
+}
+
 export interface BlockContentMap {
   text: { text: string };
   heading: { text: string; level: 1 | 2 | 3 };
   bulleted_list: { text: string };
   todo: { text: string; checked: boolean };
-  /** Una imagen subida o enlazada. `caption` es el pie, opcional. */
-  image: { url: string; caption: string };
+  /**
+   * Una imagen subida o enlazada. `caption` es el pie, opcional.
+   * `size` es cuánto ocupa de ancho; si falta, va a ancho completo (que es
+   * como se guardaron las imágenes antes de que existiera la opción).
+   */
+  image: { url: string; caption: string; size?: ImageSize };
   /** Un link: video que se reproduce acá, o tarjeta para abrirlo. */
   embed: { url: string; caption: string };
 }

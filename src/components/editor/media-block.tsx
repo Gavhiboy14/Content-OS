@@ -5,12 +5,31 @@ import { ExternalLink, ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { uploadImageAction } from "@/app/upload-actions";
 import { describeEmbed } from "@/lib/embeds";
 import { cn } from "@/lib/utils";
-import type { Block } from "@/lib/types";
+import type { Block, ImageSize } from "@/lib/types";
 import { captionOf, urlOf } from "@/lib/types";
+
+/**
+ * Los tamaños que puede tomar una imagen. Son proporciones y no medidas
+ * fijas: así una imagen "chica" sigue siendo chica en un monitor grande y no
+ * se desborda en un teléfono.
+ */
+const TAMANOS: { value: ImageSize; label: string; className: string }[] = [
+  { value: "s", label: "Chica", className: "max-w-[45%]" },
+  { value: "m", label: "Mediana", className: "max-w-[70%]" },
+  { value: "l", label: "Grande", className: "max-w-full" },
+];
+
+function claseDeTamano(size: string | undefined): string {
+  return TAMANOS.find((t) => t.value === size)?.className ?? "max-w-full";
+}
 
 interface MediaBlockProps {
   block: Block;
-  onChange: (content: { url: string; caption: string }) => void;
+  onChange: (content: {
+    url: string;
+    caption: string;
+    size?: ImageSize;
+  }) => void;
   onDelete: () => void;
 }
 
@@ -22,10 +41,12 @@ interface MediaBlockProps {
 export function MediaBlock({ block, onChange, onDelete }: MediaBlockProps) {
   const url = urlOf(block);
   const caption = captionOf(block);
+  const size = (block.content as { size?: ImageSize }).size;
+  const esImagen = block.type === "image";
 
   if (!url) {
-    return block.type === "image" ? (
-      <CargarImagen onReady={(u) => onChange({ url: u, caption })} />
+    return esImagen ? (
+      <CargarImagen onReady={(u) => onChange({ url: u, caption, size })} />
     ) : (
       <CargarEnlace onReady={(u) => onChange({ url: u, caption })} />
     );
@@ -33,27 +54,51 @@ export function MediaBlock({ block, onChange, onDelete }: MediaBlockProps) {
 
   return (
     <figure className="w-full">
-      <div className="group/media relative">
-        {block.type === "image" ? (
-          <Imagen url={url} caption={caption} />
-        ) : (
-          <Enlace url={url} />
+      <div
+        className={cn(
+          "group/media relative",
+          esImagen && claseDeTamano(size)
         )}
+      >
+        {esImagen ? <Imagen url={url} caption={caption} /> : <Enlace url={url} />}
 
-        <button
-          onClick={onDelete}
-          aria-label="Quitar"
-          title="Quitar"
-          className="tap-target absolute top-2 right-2 rounded-lg bg-black/60 p-1.5 text-ink-2 backdrop-blur-sm transition hover:text-ink pointer-fine:opacity-0 pointer-fine:focus-visible:opacity-100 pointer-fine:group-hover/media:opacity-100"
-        >
-          <Trash2 size={13} />
-        </button>
+        <div className="absolute top-2 right-2 flex items-center gap-1 pointer-fine:opacity-0 pointer-fine:focus-within:opacity-100 pointer-fine:group-hover/media:opacity-100">
+          {esImagen && (
+            <div className="flex items-center gap-0.5 rounded-lg bg-black/60 p-0.5 backdrop-blur-sm">
+              {TAMANOS.map((t) => (
+                <button
+                  key={t.value}
+                  onClick={() => onChange({ url, caption, size: t.value })}
+                  aria-pressed={(size ?? "l") === t.value}
+                  title={t.label}
+                  className={cn(
+                    "tap-target rounded-md px-2 py-1 text-[11px] transition-colors",
+                    (size ?? "l") === t.value
+                      ? "bg-white/[0.18] text-ink"
+                      : "text-ink-3 hover:text-ink"
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={onDelete}
+            aria-label="Quitar"
+            title="Quitar"
+            className="tap-target rounded-lg bg-black/60 p-1.5 text-ink-2 backdrop-blur-sm transition hover:text-ink"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
       </div>
 
       <figcaption>
         <input
           value={caption}
-          onChange={(e) => onChange({ url, caption: e.target.value })}
+          onChange={(e) => onChange({ url, caption: e.target.value, size })}
           placeholder="Escribí un pie (opcional)"
           aria-label="Pie"
           className="mt-1.5 w-full border-none bg-transparent text-[13px] text-ink-3 outline-none placeholder:text-ink-3/60"

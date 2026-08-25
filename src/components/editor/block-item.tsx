@@ -5,16 +5,27 @@ import { GripVertical, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BLOCK_DEFINITIONS, getBlockDefinition } from "./block-registry";
 import { MediaBlock } from "./media-block";
-import { isMediaBlock, type Block, type BlockType } from "@/lib/types";
+import {
+  isMediaBlock,
+  type Block,
+  type BlockType,
+  type ImageSize,
+} from "@/lib/types";
 
 interface BlockItemProps {
   block: Block;
   text: string;
   onTextChange: (text: string) => void;
   onTypeChange: (type: BlockType) => void;
+  /** Crea un bloque nuevo debajo, del tipo elegido. */
+  onAddBelow: (type: BlockType) => void;
   onToggleChecked: () => void;
-  /** Sólo para los bloques de medios: guardar dirección y pie. */
-  onMediaChange: (content: { url: string; caption: string }) => void;
+  /** Sólo para los bloques de medios: guardar dirección, pie y tamaño. */
+  onMediaChange: (content: {
+    url: string;
+    caption: string;
+    size?: ImageSize;
+  }) => void;
   onDelete: () => void;
   onEnter: () => void;
   onBackspaceEmpty: () => void;
@@ -32,6 +43,7 @@ export function BlockItem({
   text,
   onTextChange,
   onTypeChange,
+  onAddBelow,
   onToggleChecked,
   onMediaChange,
   onDelete,
@@ -49,6 +61,7 @@ export function BlockItem({
   const esMedio = isMediaBlock(block.type);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
   // El bloque sólo se vuelve arrastrable mientras se sostiene la manija; si
   // no, arrastrar para seleccionar texto dispararía el reordenamiento.
   const [dragArmed, setDragArmed] = useState(false);
@@ -131,12 +144,17 @@ export function BlockItem({
         )}
       >
         <div className="relative">
+          {/* El "+" AGREGA un bloque nuevo debajo. Antes convertía el bloque
+              actual, que con un ícono de "más" es lo contrario de lo que
+              cualquiera espera: al querer sumar una segunda imagen,
+              reemplazaba la primera. Para convertir está el menú de la
+              manija, al lado. */}
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="rounded-md p-1 text-ink-3 transition-colors hover:bg-white/[0.07] hover:text-ink"
-            aria-label="Cambiar tipo de bloque"
+            className="tap-target rounded-md p-1 text-ink-3 transition-colors hover:bg-white/[0.07] hover:text-ink"
+            aria-label="Agregar un bloque debajo"
             aria-expanded={menuOpen}
-            title="Cambiar tipo"
+            title="Agregar debajo"
           >
             <Plus size={14} />
           </button>
@@ -155,8 +173,55 @@ export function BlockItem({
                     <button
                       key={def.type}
                       onClick={() => {
-                        onTypeChange(def.type);
+                        onAddBelow(def.type);
                         setMenuOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[13px] text-ink-2 transition-colors hover:bg-white/[0.06] hover:text-ink"
+                    >
+                      <Icon size={13} className="shrink-0 text-ink-3" />
+                      {def.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* La manija arrastra para reordenar y, con un click, abre el menú
+            para convertir el bloque en otro tipo. */}
+        <div className="relative">
+          <button
+            onMouseDown={() => setDragArmed(true)}
+            onMouseUp={() => setDragArmed(false)}
+            onClick={() => setConvertOpen((v) => !v)}
+            aria-label="Opciones del bloque"
+            aria-expanded={convertOpen}
+            title="Arrastrar para mover · click para convertir"
+            className="tap-target cursor-grab rounded-md p-1 text-ink-3 transition-colors hover:bg-white/[0.07] hover:text-ink active:cursor-grabbing"
+          >
+            <GripVertical size={14} />
+          </button>
+
+          {convertOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setConvertOpen(false)}
+                aria-hidden="true"
+              />
+              <div className="surface-raised absolute top-7 left-0 z-20 w-44 overflow-hidden rounded-xl p-1">
+                <p className="px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-3">
+                  Convertir en
+                </p>
+                {BLOCK_DEFINITIONS.map((def) => {
+                  const Icon = def.icon;
+                  return (
+                    <button
+                      key={def.type}
+                      onClick={() => {
+                        onTypeChange(def.type);
+                        setConvertOpen(false);
                       }}
                       className={cn(
                         "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[13px] transition-colors hover:bg-white/[0.06]",
@@ -171,16 +236,6 @@ export function BlockItem({
               </div>
             </>
           )}
-        </div>
-
-        <div
-          onMouseDown={() => setDragArmed(true)}
-          onMouseUp={() => setDragArmed(false)}
-          className="cursor-grab rounded-md p-1 text-ink-3 transition-colors hover:bg-white/[0.07] hover:text-ink active:cursor-grabbing"
-          title="Arrastrar para reordenar (o Alt + ↑ ↓)"
-          aria-hidden="true"
-        >
-          <GripVertical size={14} />
         </div>
       </div>
 
