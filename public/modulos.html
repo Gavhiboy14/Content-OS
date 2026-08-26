@@ -1,0 +1,1302 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#141020">
+<meta name="description" content="Módulos para Content OS: espía de competencia, métricas, ideas y guiones, secuencias de historias y variantes de un video ganador.">
+<title>Content OS Módulos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#141020; --bg2:#0e0b18; --surface:#1c1729; --surface2:#241d35; --surface3:#2d2442;
+  --line:#342a4c; --line-soft:#271f3c;
+  --text:#ece7f7; --text2:#a99cc4; --text3:#7a6e96;
+  --accent:#a78bfa; --accent-strong:#8b5cf6; --accent-dim:rgba(167,139,250,.13); --accent-line:rgba(167,139,250,.34);
+  --mag:#f472b6; --ok:#4ade80; --warn:#fbbf24; --crit:#fb7185;
+  --r:12px; --r-s:8px;
+  --ui:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --disp:"Bricolage Grotesque","IBM Plex Sans",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:var(--ui); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(900px 520px at 78% -12%,rgba(139,92,246,.16),transparent 62%),
+             radial-gradient(700px 460px at 4% 104%,rgba(244,114,182,.07),transparent 60%);}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3,h4{margin:0;font-family:var(--disp);font-weight:700;text-wrap:balance;letter-spacing:-.015em}
+a{color:var(--accent)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#33294a;border-radius:20px;border:3px solid var(--bg)}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- shell ---------- */
+.app{position:relative;z-index:1;display:grid;grid-template-columns:238px minmax(0,1fr);height:100vh}
+.side{background:rgba(20,16,32,.82);border-right:1px solid var(--line-soft);display:flex;flex-direction:column;min-height:0}
+.brand{display:flex;align-items:center;gap:10px;padding:16px 14px 12px}
+.brand .glyph{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+  background:linear-gradient(150deg,var(--accent-strong),#c084fc);box-shadow:0 4px 14px rgba(139,92,246,.35);font-size:15px}
+.brand b{font-family:var(--disp);font-size:15px;font-weight:700;letter-spacing:-.02em}
+.brand small{display:block;font-size:10px;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin-top:1px}
+.navwrap{flex:1;overflow-y:auto;padding:6px 10px 10px;min-height:0}
+.navlabel{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);padding:14px 8px 6px;font-weight:600}
+.navitem{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px 10px;border-radius:9px;
+  background:none;border:0;color:var(--text2);cursor:pointer;font-size:13.5px;font-weight:500;transition:background .13s,color .13s}
+.navitem span.ico{width:17px;text-align:center;font-size:14px;filter:saturate(.9)}
+.navitem:hover{background:var(--surface2);color:var(--text)}
+.navitem.on{background:var(--accent-dim);color:#fff;box-shadow:inset 2px 0 0 var(--accent)}
+.navitem .count{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--text3);background:var(--surface2);padding:1px 6px;border-radius:20px}
+.navitem.on .count{background:rgba(167,139,250,.2);color:var(--accent)}
+.sidefoot{padding:10px;border-top:1px solid var(--line-soft)}
+
+.main{overflow-y:auto;min-width:0}
+.wrap{max-width:1120px;margin:0 auto;padding:30px 34px 90px}
+.phead{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px}
+.phead .pico{font-size:27px;line-height:1.1}
+.phead h1{font-size:29px}
+.phead p{margin:3px 0 0;color:var(--text2);font-size:13.5px;max-width:62ch}
+.phead .acts{margin-left:auto;display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.phead .ptxt{flex:1 1 auto;min-width:0}
+@media(max-width:820px){
+  .phead{flex-wrap:wrap}
+  .phead .ptxt{flex:1 1 100%}
+  .phead .acts{margin-left:0;flex-basis:100%;justify-content:flex-start}
+}
+
+/* ---------- atoms ---------- */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);
+  background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-weight:500;transition:.13s;white-space:nowrap}
+.btn:hover{background:var(--surface3);border-color:var(--accent-line)}
+.btn:focus-visible,.navitem:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.pri{background:linear-gradient(160deg,var(--accent-strong),#7c3aed);border-color:transparent;color:#fff;font-weight:600;
+  box-shadow:0 3px 12px rgba(124,58,237,.34)}
+.btn.pri:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:4px 9px;font-size:12px;border-radius:7px}
+.btn.danger:hover{border-color:var(--crit);color:var(--crit)}
+.btn[disabled]{opacity:.42;cursor:not-allowed}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:16px}
+.lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);font-weight:600}
+.sect{margin-top:30px}
+.sect>.lab{display:block;margin-bottom:11px}
+.grid{display:grid;gap:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
+  padding:2.5px 8px;border-radius:20px;background:var(--surface2);border:1px solid var(--line-soft);color:var(--text2);text-transform:uppercase;font-weight:500}
+.chip.ac{background:var(--accent-dim);border-color:var(--accent-line);color:var(--accent)}
+.chip.ok{background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.3);color:var(--ok)}
+.chip.wr{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.3);color:var(--warn)}
+.chip.cr{background:rgba(251,113,133,.12);border-color:rgba(251,113,133,.3);color:var(--crit)}
+.chip.mg{background:rgba(244,114,182,.12);border-color:rgba(244,114,182,.3);color:var(--mag)}
+.muted{color:var(--text2)}
+.dim{color:var(--text3)}
+.mono{font-family:var(--mono)}
+.tnum{font-variant-numeric:tabular-nums}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:30px 22px;text-align:center;color:var(--text3);font-size:13px}
+.empty b{display:block;color:var(--text2);font-family:var(--disp);font-size:15px;margin-bottom:5px;font-weight:600}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field>label{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text3);font-weight:600}
+input[type=text],input[type=number],input[type=date],input[type=url],select,textarea{
+  width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r-s);padding:8px 10px;font-size:13.5px;transition:border-color .13s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent-line)}
+input::placeholder,textarea::placeholder{color:#5d5379}
+textarea{resize:vertical;min-height:70px;line-height:1.55}
+select{cursor:pointer;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--text3) 50%),linear-gradient(135deg,var(--text3) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 52%,calc(100% - 11px) 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px}
+.fgrid{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}
+.f2{grid-column:span 2}
+@media(max-width:760px){.f2{grid-column:span 1}}
+
+/* stat tiles */
+.tiles{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(158px,1fr))}
+.tile{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:13px 14px}
+.tile .v{font-family:var(--disp);font-size:25px;font-weight:700;letter-spacing:-.03em;margin-top:5px;font-variant-numeric:tabular-nums}
+.tile .s{font-size:11.5px;color:var(--text3);margin-top:2px}
+.tile.hi{background:linear-gradient(155deg,rgba(139,92,246,.15),var(--surface) 62%);border-color:var(--accent-line)}
+
+/* tables */
+.tblwrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:var(--r);background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--text3);font-weight:600;
+  text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--bg2)}
+td{padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--surface2)}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.bar{height:5px;border-radius:3px;background:var(--surface3);overflow:hidden;min-width:44px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-strong),var(--mag));border-radius:3px}
+
+/* split layout */
+.split{display:grid;grid-template-columns:266px minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.split{grid-template-columns:1fr}.app{grid-template-columns:1fr}.side{position:fixed;z-index:40;inset:0 auto 0 0;width:238px;transform:translateX(-100%);transition:transform .2s}
+  .side.open{transform:none;box-shadow:0 0 40px rgba(0,0,0,.6)} .mobtog{display:inline-flex!important} .wrap{padding:62px 16px 80px}}
+.mobtog{display:none;position:fixed;z-index:41;left:12px;top:12px}
+.rail{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:8px;display:flex;flex-direction:column;gap:2px;max-height:none}
+.railitem{display:flex;gap:9px;align-items:center;padding:8px 9px;border-radius:9px;background:none;border:0;cursor:pointer;text-align:left;width:100%;color:var(--text2);transition:.12s}
+.railitem:hover{background:var(--surface2);color:var(--text)}
+.railitem.on{background:var(--accent-dim);color:#fff}
+.railitem .t{font-weight:600;font-size:13.5px;display:block;color:inherit;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.railitem .m{font-size:11px;color:var(--text3);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.railitem.on .m{color:#bcaee0}
+.av{width:28px;height:28px;border-radius:8px;flex:0 0 28px;display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:12px;color:#fff;
+  background:linear-gradient(150deg,var(--accent-strong),var(--mag))}
+
+/* item cards */
+.item{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);padding:13px 14px;display:flex;gap:12px;align-items:flex-start}
+.item h4{font-size:14.5px;font-weight:600;font-family:var(--ui);letter-spacing:0}
+.item .body{flex:1;min-width:0}
+.item .acts{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;max-width:180px}
+.item p{margin:5px 0 0;font-size:12.5px;color:var(--text2)}
+
+/* modal */
+.mask{position:fixed;inset:0;background:rgba(8,6,14,.72);backdrop-filter:blur(3px);z-index:60;display:grid;place-items:center;padding:20px}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:16px;width:min(760px,100%);max-height:88vh;overflow:auto;
+  box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.modal header{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);position:sticky;top:0;background:var(--surface);z-index:2}
+.modal header h3{font-size:17px}
+.modal .bd{padding:18px}
+.modal footer{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--line-soft);position:sticky;bottom:0;background:var(--surface)}
+.x{margin-left:auto;background:none;border:0;color:var(--text3);cursor:pointer;font-size:19px;line-height:1;padding:3px 6px;border-radius:6px}
+.x:hover{background:var(--surface2);color:var(--text)}
+
+/* prompt box */
+.prompt{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:14px;font-family:var(--mono);font-size:12px;
+  line-height:1.62;white-space:pre-wrap;max-height:420px;overflow:auto;color:#cdc3e4}
+.hint{font-size:12px;color:var(--text3);line-height:1.55}
+.hint b{color:var(--text2);font-weight:600}
+
+/* stories */
+.slides{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(186px,1fr))}
+.slide{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.slide .ph{position:relative;aspect-ratio:9/16;background:var(--bg2);display:grid;place-items:center;overflow:hidden}
+.slide .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.slide .ph .no{color:var(--text3);font-size:11.5px;text-align:center;padding:12px;line-height:1.5}
+.slide .ph .idx{position:absolute;top:7px;left:7px;font-family:var(--mono);font-size:10px;background:rgba(10,8,16,.8);
+  padding:2px 7px;border-radius:20px;color:var(--accent);border:1px solid var(--accent-line);font-weight:600}
+.slide .ph .ov{position:absolute;left:0;right:0;bottom:0;padding:10px 9px;font-size:11.5px;line-height:1.42;
+  background:linear-gradient(transparent,rgba(8,6,14,.9));color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.slide .cf{padding:7px 6px;display:flex;gap:3px;justify-content:space-between;border-top:1px solid var(--line-soft)}
+.slide .cf .btn{padding:4px 6px;font-size:12px}
+.drop{border:1.5px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--text3);font-size:13px;cursor:pointer;transition:.15s}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-dim);color:var(--text2)}
+
+/* toast */
+#toasts{position:fixed;right:18px;bottom:18px;z-index:90;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.toast{background:var(--surface3);border:1px solid var(--accent-line);border-radius:10px;padding:10px 14px;font-size:13px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);animation:tin .22s ease-out;max-width:340px}
+.toast.bad{border-color:rgba(251,113,133,.5)}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<button class="btn mobtog" id="mobtog" aria-label="Abrir menú">☰</button>
+<div class="app">
+  <aside class="side" id="side">
+    <div class="brand">
+      <div class="glyph">◈</div>
+      <div><b>Content OS</b><small>Módulos</small></div>
+    </div>
+    <div class="navwrap" id="nav"></div>
+    <div class="sidefoot">
+      <!-- Vuelta al Content OS principal: sin esto se entra acá y no hay
+           forma de salir más que el botón de atrás del navegador. -->
+      <a class="btn ghost sm" style="width:100%;justify-content:center;margin-bottom:6px;text-decoration:none" href="/">← Volver a Content OS</a>
+      <button class="btn ghost sm" style="width:100%;justify-content:center" data-go="datos">⚙️ Datos y respaldo</button>
+    </div>
+  </aside>
+  <main class="main" id="main"><div class="wrap" id="view"></div></main>
+</div>
+<div id="modalRoot"></div>
+<div id="toasts"></div>
+<script>
+(function(){
+"use strict";
+
+/* ══════════════ 1. Base ══════════════ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.prototype.slice.call(r.querySelectorAll(s));
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nn=v=>{const n=parseFloat(String(v==null?'':v).replace(/\s/g,'').replace(/\./g,'').replace(',','.'));return isFinite(n)?n:0;};
+const fmt=n=>{n=Number(n)||0;return n>=1e6?(n/1e6).toFixed(1).replace('.',',')+'M':n>=1e4?Math.round(n/1e3)+' mil':n>=1e3?(n/1e3).toFixed(1).replace('.',',')+' mil':String(Math.round(n));};
+const pct=n=>(Number(n)||0).toFixed(1).replace('.',',')+'%';
+const hoy=()=>new Date().toISOString().slice(0,10);
+const fecha=d=>{if(!d)return '—';const p=String(d).slice(0,10).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0].slice(2):d;};
+const lines=a=>a.filter(Boolean).join('\n');
+
+const KEY='contentos_modulos_v1';
+const VACIO={
+  marca:{nombre:'',nicho:'',audiencia:'',tono:'Rioplatense, directo, sin vueltas',pilares:'',oferta:'',cta:'',prohibido:''},
+  refs:[], posts:[], biblio:[], secuencias:[], variantes:[]
+};
+let S=cargar();
+
+function cargar(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(!raw) return JSON.parse(JSON.stringify(VACIO));
+    const d=JSON.parse(raw);
+    return Object.assign(JSON.parse(JSON.stringify(VACIO)),d);
+  }catch(e){ return JSON.parse(JSON.stringify(VACIO)); }
+}
+let guardarT=null;
+function guardar(inmediato){
+  clearTimeout(guardarT);
+  const go=()=>{
+    try{ localStorage.setItem(KEY,JSON.stringify(S)); }
+    catch(e){ toast('No entró en la memoria del navegador. Bajá un respaldo en Datos y borrá alguna secuencia con muchas fotos.',true); }
+  };
+  if(inmediato) go(); else guardarT=setTimeout(go,320);
+}
+
+function toast(msg,bad){
+  const t=document.createElement('div');
+  t.className='toast'+(bad?' bad':''); t.textContent=msg;
+  $('#toasts').appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(()=>t.remove(),320);},bad?4600:2400);
+}
+
+async function copiar(txt,label){
+  try{ await navigator.clipboard.writeText(txt); toast((label||'Copiado')+' ✓'); return true; }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast((label||'Copiado')+' ✓'); }
+    catch(e2){ toast('No pude copiar. Seleccioná el texto a mano.',true); }
+    ta.remove(); return true;
+  }
+}
+
+/* descarga: usa la capacidad del visor si existe, si no un enlace normal */
+let capDL; 
+async function getDL(){ if(capDL!==undefined) return capDL; capDL=null;
+  try{ if(window.claude&&window.claude.use) capDL=await window.claude.use('downloads'); }catch(e){}
+  return capDL;
+}
+async function bajar(nombre,blob){
+  const ext=(nombre.split('.').pop()||'').toLowerCase();
+  const dl=await getDL();
+  if(dl){
+    try{ await dl.save({filename:nombre,data:blob}); toast('Descargado ✓'); return true; }
+    catch(err){
+      const c=err&&err.code;
+      if(c==='declined') return false;
+      if(c==='rejected_extension'||c==='extension_not_enabled'){
+        toast('Acá el visor no deja bajar .'+ext+'. Abrí el módulo desde tu dashboard en Netlify y ahí sí funciona.',true);
+        return false;
+      }
+      toast('No se pudo descargar: '+(err&&err.message||'error'),true); return false;
+    }
+  }
+  try{
+    const u=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=u; a.download=nombre; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),4000); toast('Descargado ✓'); return true;
+  }catch(e){ toast('El navegador bloqueó la descarga.',true); return false; }
+}
+
+/* ══════════════ 2. ZIP (store, sin dependencias) ══════════════ */
+const CRC=(function(){const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function zip(files){
+  const enc=new TextEncoder(), locals=[], centrals=[]; let off=0;
+  files.forEach(f=>{
+    const name=enc.encode(f.name), data=f.data, crc=crc32(data), sz=data.length;
+    const lh=new Uint8Array(30+name.length), dv=new DataView(lh.buffer);
+    dv.setUint32(0,0x04034b50,true); dv.setUint16(4,20,true); dv.setUint16(6,0x0800,true);
+    dv.setUint16(8,0,true); dv.setUint16(10,0,true); dv.setUint16(12,0x2100,true);
+    dv.setUint32(14,crc,true); dv.setUint32(18,sz,true); dv.setUint32(22,sz,true);
+    dv.setUint16(26,name.length,true); dv.setUint16(28,0,true); lh.set(name,30);
+    locals.push(lh,data);
+    const ch=new Uint8Array(46+name.length), cv=new DataView(ch.buffer);
+    cv.setUint32(0,0x02014b50,true); cv.setUint16(4,20,true); cv.setUint16(6,20,true);
+    cv.setUint16(8,0x0800,true); cv.setUint16(10,0,true); cv.setUint16(12,0,true); cv.setUint16(14,0x2100,true);
+    cv.setUint32(16,crc,true); cv.setUint32(20,sz,true); cv.setUint32(24,sz,true);
+    cv.setUint16(28,name.length,true); cv.setUint16(30,0,true); cv.setUint16(32,0,true);
+    cv.setUint16(34,0,true); cv.setUint16(36,0,true); cv.setUint32(38,0,true); cv.setUint32(42,off,true);
+    ch.set(name,46); centrals.push(ch);
+    off+=lh.length+sz;
+  });
+  let cdSize=0; centrals.forEach(c=>cdSize+=c.length);
+  const eo=new Uint8Array(22), ev=new DataView(eo.buffer);
+  ev.setUint32(0,0x06054b50,true); ev.setUint16(4,0,true); ev.setUint16(6,0,true);
+  ev.setUint16(8,files.length,true); ev.setUint16(10,files.length,true);
+  ev.setUint32(12,cdSize,true); ev.setUint32(16,off,true); ev.setUint16(20,0,true);
+  return new Blob(locals.concat(centrals,[eo]),{type:'application/zip'});
+}
+function dataURLaBytes(u){
+  const b64=String(u).split(',')[1]||''; const bin=atob(b64);
+  const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);
+  return out;
+}
+
+/* ══════════════ 3. Modal ══════════════ */
+function modal(titulo,cuerpoHTML,pie,onMount){
+  cerrarModal();
+  const m=document.createElement('div'); m.className='mask';
+  m.innerHTML='<div class="modal" role="dialog" aria-modal="true"><header><h3>'+esc(titulo)+'</h3>'+
+    '<button class="x" data-cerrar aria-label="Cerrar">✕</button></header><div class="bd">'+cuerpoHTML+'</div>'+
+    (pie?'<footer>'+pie+'</footer>':'')+'</div>';
+  $('#modalRoot').appendChild(m);
+  m.addEventListener('click',e=>{ if(e.target===m||e.target.hasAttribute('data-cerrar')) cerrarModal(); });
+  document.addEventListener('keydown',escCerrar);
+  if(onMount) onMount(m);
+  const f=m.querySelector('input,textarea,select'); if(f) setTimeout(()=>f.focus(),40);
+  return m;
+}
+function escCerrar(e){ if(e.key==='Escape') cerrarModal(); }
+function cerrarModal(){ $('#modalRoot').innerHTML=''; document.removeEventListener('keydown',escCerrar); }
+function verPrompt(titulo,txt,nota){
+  modal(titulo,
+    (nota?'<p class="hint" style="margin:0 0 12px">'+nota+'</p>':'')+
+    '<div class="prompt" id="pbox">'+esc(txt)+'</div>',
+    '<button class="btn ghost" data-cerrar>Cerrar</button><button class="btn pri" id="pcopy">📋 Copiar prompt</button>',
+    m=>{ m.querySelector('#pcopy').onclick=()=>copiar(txt,'Prompt copiado'); });
+}
+function confirmar(txt,cb){
+  modal('Confirmá','<p style="margin:0;font-size:14px">'+esc(txt)+'</p>',
+    '<button class="btn ghost" data-cerrar>Cancelar</button><button class="btn danger" id="ok">Sí, borrar</button>',
+    m=>{ m.querySelector('#ok').onclick=()=>{cerrarModal();cb();}; });
+}
+
+/* ══════════════ 4. Contexto de marca para los prompts ══════════════ */
+function topPosts(n){
+  return S.posts.slice().map(p=>Object.assign({},p,{eng:engagement(p)}))
+    .sort((a,b)=>(nn(b.views)-nn(a.views))).slice(0,n||3);
+}
+function engagement(p){
+  const v=nn(p.views); if(!v) return 0;
+  return ((nn(p.likes)+nn(p.coments)+nn(p.guardados)+nn(p.compartidos))/v)*100;
+}
+function ctxMarca(opts){
+  opts=opts||{};
+  const m=S.marca, L=[];
+  L.push('## MI MARCA');
+  L.push('- Cuenta / marca: '+(m.nombre||'(sin cargar)'));
+  if(m.nicho) L.push('- Nicho: '+m.nicho);
+  if(m.audiencia) L.push('- A quién le hablo: '+m.audiencia);
+  if(m.tono) L.push('- Tono de voz: '+m.tono);
+  if(m.pilares) L.push('- Pilares de contenido: '+m.pilares.split(/\n|,/).map(s=>s.trim()).filter(Boolean).join(' | '));
+  if(m.oferta) L.push('- Qué vendo / a qué quiero llevar: '+m.oferta);
+  if(m.cta) L.push('- CTAs que uso: '+m.cta);
+  if(m.prohibido) L.push('- Nunca hacer: '+m.prohibido);
+
+  if(opts.top!==false){
+    const t=topPosts(4);
+    if(t.length){
+      L.push(''); L.push('## LO QUE MEJOR ME FUNCIONÓ (datos reales)');
+      t.forEach(p=>L.push('- "'+(p.titulo||'sin título')+'" ('+(p.formato||'—')+', '+(p.plataforma||'—')+') — '+
+        fmt(nn(p.views))+' views, '+pct(p.eng)+' de engagement'+(p.hook?' — hook: "'+p.hook+'"':'')));
+    }
+  }
+  if(opts.biblio!==false){
+    const h=S.biblio.filter(b=>b.tipo==='hook').slice(0,8);
+    if(h.length){ L.push(''); L.push('## HOOKS DE MI BANCO (para que copies mi voz)');
+      h.forEach(b=>L.push('- '+(b.texto||b.titulo))); }
+    const g=S.biblio.filter(b=>b.tipo==='guion'||b.tipo==='transcripcion').slice(0,2);
+    if(g.length){ L.push(''); L.push('## MUESTRA DE MI FORMA DE ESCRIBIR');
+      g.forEach(b=>L.push('---\n'+String(b.texto||'').slice(0,900))); }
+  }
+  return lines(L);
+}
+function marcaLista(){ return !!(S.marca.nombre||S.marca.nicho); }
+function avisoMarca(){
+  return marcaLista()?'':'<div class="card" style="border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.06);margin-bottom:16px">'+
+    '<div class="row"><span>⚠️</span><div style="flex:1;min-width:200px"><b style="font-size:13.5px">Cargá tu marca primero</b>'+
+    '<p class="hint" style="margin:3px 0 0">Los prompts salen genéricos si la IA no sabe de quién habla. Son 2 minutos.</p></div>'+
+    '<button class="btn sm" data-go="marca">Cargar marca</button></div></div>';
+}
+
+/* ══════════════ 5. Navegación ══════════════ */
+const MODULOS=[
+  {g:'Tu marca'},
+  {id:'marca',ico:'🎯',t:'Perfil de marca',sub:'El contexto que alimenta todo'},
+  {g:'Módulos'},
+  {id:'metricas',ico:'📊',t:'Métricas',c:()=>S.posts.length},
+  {id:'espia',ico:'🕵️',t:'Espía de competencia',c:()=>S.refs.length},
+  {id:'ideas',ico:'🧠',t:'Ideas y guiones',c:()=>S.biblio.length},
+  {id:'historias',ico:'📸',t:'Secuencias de historias',c:()=>S.secuencias.length},
+  {id:'variantes',ico:'♻️',t:'Variantes',c:()=>S.variantes.length},
+];
+let vista='metricas', ctx={};
+
+function pintarNav(){
+  const n=$('#nav'); n.innerHTML='';
+  MODULOS.forEach(m=>{
+    if(m.g){ const d=document.createElement('div'); d.className='navlabel'; d.textContent=m.g; n.appendChild(d); return; }
+    const b=document.createElement('button');
+    b.className='navitem'+(vista===m.id?' on':''); b.dataset.go=m.id;
+    const c=m.c?m.c():0;
+    b.innerHTML='<span class="ico">'+m.ico+'</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(m.t)+'</span>'+(c?'<span class="count tnum">'+c+'</span>':'');
+    n.appendChild(b);
+  });
+}
+function ir(id,c){ vista=id; ctx=c||{}; pintarNav(); pintar(); $('#main').scrollTop=0; $('#side').classList.remove('open'); }
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g){ ir(g.dataset.go); }
+});
+$('#mobtog').onclick=()=>$('#side').classList.toggle('open');
+
+const VISTAS={};
+function pintar(){ $('#view').innerHTML=(VISTAS[vista]||VISTAS.metricas)(); if(VISTAS[vista+'_mount']) VISTAS[vista+'_mount'](); }
+function head(ico,titulo,sub,acts){
+  return '<div class="phead"><div class="pico">'+ico+'</div><div class="ptxt"><h1>'+esc(titulo)+'</h1><p>'+sub+'</p></div>'+
+    (acts?'<div class="acts">'+acts+'</div>':'')+'</div>';
+}
+function vacio(titulo,txt,btn){ return '<div class="empty"><b>'+esc(titulo)+'</b>'+txt+(btn?'<div style="margin-top:14px">'+btn+'</div>':'')+'</div>'; }
+function campo(lab,html,span){ return '<div class="field'+(span?' f2':'')+'"><label>'+esc(lab)+'</label>'+html+'</div>'; }
+function inp(id,val,ph,tipo){ return '<input type="'+(tipo||'text')+'" id="'+id+'" value="'+esc(val||'')+'" placeholder="'+esc(ph||'')+'">'; }
+function ta(id,val,ph,h){ return '<textarea id="'+id+'" placeholder="'+esc(ph||'')+'"'+(h?' style="min-height:'+h+'px"':'')+'>'+esc(val||'')+'</textarea>'; }
+function sel(id,val,ops){ return '<select id="'+id+'">'+ops.map(o=>'<option value="'+esc(o)+'"'+(val===o?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>'; }
+
+/* ══════════════ 6. Perfil de marca ══════════════ */
+VISTAS.marca=function(){
+  const m=S.marca;
+  return head('🎯','Perfil de marca','Todo lo que la IA necesita saber para que los prompts de los otros módulos salgan con tu voz y no genéricos.')+
+  '<div class="card"><div class="fgrid">'+
+    campo('Cuenta o marca',inp('m_nombre',m.nombre,'@fedeavila / Boost Sales Group'))+
+    campo('Nicho',inp('m_nicho',m.nicho,'Ventas y closers de alto ticket'))+
+    campo('A quién le hablás',ta('m_audiencia',m.audiencia,'Coaches e infoproductores que facturan 5k-30k USD y no tienen equipo de ventas',70),1)+
+    campo('Tono de voz',inp('m_tono',m.tono,'Rioplatense, directo, sin vueltas'))+
+    campo('CTAs que usás',inp('m_cta',m.cta,'Comentá SISTEMA / Escribime "LIBRE"'))+
+    campo('Pilares de contenido (uno por línea)',ta('m_pilares',m.pilares,'Objeciones\nMindset del closer\nCasos reales\nSistema y procesos\nDetrás de escena',100),1)+
+    campo('Qué vendés / a dónde querés llevar',ta('m_oferta',m.oferta,'Mentoría de 8 semanas + implementación del sistema de ventas',70),1)+
+    campo('Nunca hacer (líneas rojas)',ta('m_prohibido',m.prohibido,'Nada de promesas de plata fácil, nada de emojis en exceso, no hablar de política',70),1)+
+  '</div><div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn pri" id="m_save">Guardar perfil</button></div></div>'+
+  '<div class="sect"><span class="lab">Cómo se usa</span><div class="card"><p class="hint" style="margin:0">'+
+  'Este perfil se inyecta automáticamente en cada prompt que generan los módulos: el análisis de competencia, las ideas, los guiones y las variantes. '+
+  'Cuanto más específico seas acá, menos vas a tener que corregir después. <b>Actualizalo cada vez que cambie tu oferta o tu ángulo.</b></p></div></div>';
+};
+VISTAS.marca_mount=function(){
+  $('#m_save').onclick=()=>{
+    ['nombre','nicho','audiencia','tono','cta','pilares','oferta','prohibido'].forEach(k=>{ S.marca[k]=$('#m_'+k).value.trim(); });
+    guardar(true); toast('Perfil guardado ✓'); pintarNav();
+  };
+};
+
+/* ══════════════ 7. Métricas ══════════════ */
+const PLATAFORMAS=['Instagram','TikTok','YouTube','LinkedIn','X','Facebook'];
+const FORMATOS=['Reel','Carrusel','Historia','Foto','Video largo','Texto'];
+VISTAS.metricas=function(){
+  const ps=S.posts.slice().sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||'')));
+  const tot=ps.reduce((a,p)=>({v:a.v+nn(p.views),l:a.l+nn(p.likes),c:a.c+nn(p.coments),g:a.g+nn(p.guardados),s:a.s+nn(p.compartidos),f:a.f+nn(p.seguidores)}),{v:0,l:0,c:0,g:0,s:0,f:0});
+  const engProm=ps.length?ps.reduce((a,p)=>a+engagement(p),0)/ps.length:0;
+  const rank=ps.slice().sort((a,b)=>engagement(b)-engagement(a)).slice(0,5);
+  const maxV=Math.max(1,...ps.map(p=>nn(p.views)));
+
+  let h=head('📊','Métricas','Cargá cada publicación con sus números. De acá salen el ranking, las variantes y el contexto que la IA usa para todo lo demás.',
+    '<button class="btn" id="mt_ia" '+(ps.length?'':'disabled')+'>✨ Analizar con IA</button><button class="btn pri" id="mt_new">+ Publicación</button>');
+
+  h+='<div class="tiles">'+
+    tile('Publicaciones',ps.length,ps.length?'cargadas':'todavía nada',1)+
+    tile('Visualizaciones',fmt(tot.v),'suma total')+
+    tile('Engagement promedio',ps.length?pct(engProm):'—','interacciones / views')+
+    tile('Guardados',fmt(tot.g),'la señal que más pesa')+
+    tile('Compartidos',fmt(tot.s),'alcance nuevo')+
+    tile('Seguidores generados',fmt(tot.f),'atribuidos a posts')+
+  '</div>';
+
+  if(!ps.length){
+    h+='<div class="sect">'+vacio('Todavía no cargaste ninguna publicación',
+      'Cargá los últimos 10 posts con sus números. Con eso ya podés ver qué funcionó, generar variantes y darle contexto real a la IA.',
+      '<button class="btn pri" id="mt_new2">+ Cargar la primera</button>')+'</div>';
+    return h;
+  }
+
+  h+='<div class="sect"><span class="lab">Lo que mejor funcionó · por engagement</span><div class="grid">'+
+    rank.map((p,i)=>'<div class="item"><div class="av" style="background:'+(i===0?'linear-gradient(150deg,#8b5cf6,#f472b6)':'var(--surface3)')+'">'+(i+1)+'</div>'+
+      '<div class="body"><h4>'+esc(p.titulo||'Sin título')+'</h4>'+
+      '<div class="row" style="margin-top:6px;gap:6px">'+
+        '<span class="chip">'+esc(p.formato||'—')+'</span><span class="chip">'+esc(p.plataforma||'—')+'</span>'+
+        (p.pilar?'<span class="chip ac">'+esc(p.pilar)+'</span>':'')+
+        '<span class="chip ok">'+pct(engagement(p))+'</span><span class="chip">'+fmt(nn(p.views))+' views</span></div>'+
+      (p.hook?'<p>“'+esc(p.hook)+'”</p>':'')+'</div>'+
+      '<div class="acts"><button class="btn sm" data-var="'+p.id+'">♻️ Variantes</button></div></div>').join('')+
+  '</div></div>';
+
+  h+='<div class="sect"><span class="lab">Todas las publicaciones</span><div class="tblwrap"><table><thead><tr>'+
+    '<th>Publicación</th><th>Fecha</th><th>Formato</th><th>Views</th><th>Alcance relativo</th><th>Eng.</th><th>Guard.</th><th>Segs.</th><th></th>'+
+    '</tr></thead><tbody>'+
+    ps.map(p=>'<tr><td><b style="font-weight:600">'+esc(p.titulo||'Sin título')+'</b>'+(p.plataforma?'<div class="dim" style="font-size:11.5px">'+esc(p.plataforma)+(p.cliente?' · '+esc(p.cliente):'')+'</div>':'')+'</td>'+
+      '<td class="n dim">'+fecha(p.fecha)+'</td><td><span class="chip">'+esc(p.formato||'—')+'</span></td>'+
+      '<td class="n">'+fmt(nn(p.views))+'</td>'+
+      '<td><div class="bar"><i style="width:'+Math.max(3,Math.round(nn(p.views)/maxV*100))+'%"></i></div></td>'+
+      '<td class="n">'+pct(engagement(p))+'</td><td class="n">'+fmt(nn(p.guardados))+'</td><td class="n">'+fmt(nn(p.seguidores))+'</td>'+
+      '<td style="white-space:nowrap"><button class="btn sm ghost" data-edit="'+p.id+'">Editar</button> <button class="btn sm ghost danger" data-del="'+p.id+'">✕</button></td></tr>').join('')+
+  '</tbody></table></div></div>';
+  return h;
+};
+function tile(lab,val,sub,hi){ return '<div class="tile'+(hi?' hi':'')+'"><div class="lab">'+esc(lab)+'</div><div class="v">'+esc(String(val))+'</div><div class="s">'+esc(sub||'')+'</div></div>'; }
+
+VISTAS.metricas_mount=function(){
+  const abrir=id=>formPost(id);
+  const a=$('#mt_new'), b=$('#mt_new2'); if(a)a.onclick=()=>abrir(); if(b)b.onclick=()=>abrir();
+  const ia=$('#mt_ia'); if(ia) ia.onclick=promptMetricas;
+  $$('[data-edit]').forEach(el=>el.onclick=()=>abrir(el.dataset.edit));
+  $$('[data-var]').forEach(el=>el.onclick=()=>ir('variantes',{post:el.dataset.var}));
+  $$('[data-del]').forEach(el=>el.onclick=()=>confirmar('¿Borrar esta publicación y sus números?',()=>{
+    S.posts=S.posts.filter(p=>p.id!==el.dataset.del); guardar(true); pintarNav(); pintar(); toast('Borrada');
+  }));
+};
+function formPost(id){
+  const p=id?S.posts.find(x=>x.id===id):{id:uid(),fecha:hoy(),plataforma:'Instagram',formato:'Reel'};
+  if(!p) return;
+  const pil=(S.marca.pilares||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  modal(id?'Editar publicación':'Nueva publicación',
+    '<div class="fgrid">'+
+      campo('Título o tema',inp('p_titulo',p.titulo,'15 formas de cerrar una venta'),1)+
+      campo('Fecha',inp('p_fecha',p.fecha||hoy(),'','date'))+
+      campo('Plataforma',sel('p_plataforma',p.plataforma||'Instagram',PLATAFORMAS))+
+      campo('Formato',sel('p_formato',p.formato||'Reel',FORMATOS))+
+      campo('Cliente',inp('p_cliente',p.cliente,'Federico Ávila'))+
+      campo('Pilar',pil.length?sel('p_pilar',p.pilar||pil[0],[''].concat(pil)):inp('p_pilar',p.pilar,'Objeciones'))+
+      campo('Link',inp('p_url',p.url,'https://…','url'))+
+    '</div>'+
+    '<div class="lab" style="display:block;margin:18px 0 9px">Números</div><div class="fgrid">'+
+      campo('Views',inp('p_views',p.views,'0'))+campo('Likes',inp('p_likes',p.likes,'0'))+
+      campo('Comentarios',inp('p_coments',p.coments,'0'))+campo('Guardados',inp('p_guardados',p.guardados,'0'))+
+      campo('Compartidos',inp('p_compartidos',p.compartidos,'0'))+campo('Seguidores ganados',inp('p_seguidores',p.seguidores,'0'))+
+    '</div>'+
+    '<div class="lab" style="display:block;margin:18px 0 9px">Contenido</div><div class="fgrid">'+
+      campo('Hook (primeros 3 segundos)',ta('p_hook',p.hook,'Si perdés la venta en la objeción, el problema no fue la objeción.',60),1)+
+      campo('CTA',inp('p_cta',p.cta,'Comentá SISTEMA'),1)+
+      campo('Transcripción o guion',ta('p_transcripcion',p.transcripcion,'Pegá acá lo que decís en el video. Esto es oro para entrenar los prompts.',110),1)+
+      campo('Notas',ta('p_notas',p.notas,'Qué probaste, qué cambiarías',60),1)+
+    '</div>',
+    '<button class="btn ghost" data-cerrar>Cancelar</button><button class="btn pri" id="p_ok">Guardar</button>',
+    m=>{ m.querySelector('#p_ok').onclick=()=>{
+      ['titulo','fecha','plataforma','formato','cliente','pilar','url','views','likes','coments','guardados','compartidos','seguidores','hook','cta','transcripcion','notas']
+        .forEach(k=>{ const el=m.querySelector('#p_'+k); if(el) p[k]=el.value.trim(); });
+      if(!p.titulo){ toast('Ponele un título',true); return; }
+      if(!S.posts.some(x=>x.id===p.id)) S.posts.push(p);
+      guardar(true); cerrarModal(); pintarNav(); pintar(); toast('Guardado ✓');
+    };});
+}
+function promptMetricas(){
+  const ps=S.posts.slice().sort((a,b)=>nn(b.views)-nn(a.views));
+  const t=lines([
+    'Actuá como analista de contenido para redes sociales. Hablás en español rioplatense, sos concreto y no te vas por las ramas.',
+    '',ctxMarca({biblio:false,top:false}),'',
+    '## MIS PUBLICACIONES (datos reales)',
+    ps.map(p=>'- '+fecha(p.fecha)+' | "'+(p.titulo||'sin título')+'" | '+(p.formato||'—')+' | '+(p.plataforma||'—')+
+      (p.pilar?' | pilar: '+p.pilar:'')+' | views '+nn(p.views)+' | likes '+nn(p.likes)+' | coments '+nn(p.coments)+
+      ' | guardados '+nn(p.guardados)+' | compartidos '+nn(p.compartidos)+' | seguidores +'+nn(p.seguidores)+
+      ' | engagement '+pct(engagement(p))+(p.hook?' | hook: "'+p.hook+'"':'')).join('\n'),
+    '','## LO QUE NECESITO',
+    '1. **Qué está funcionando y por qué.** Buscá el patrón real (formato, pilar, tipo de hook, día, duración). No me digas obviedades: mostrame la correlación con los números.',
+    '2. **Qué está tirando el alcance para abajo.** Sé honesto aunque duela.',
+    '3. **El ranking de mis 3 mejores hooks** y qué tienen en común a nivel estructura.',
+    '4. **5 hipótesis concretas para testear** las próximas 2 semanas, cada una con: qué cambio, en qué post lo aplico y qué métrica debería moverse.',
+    '5. **Una alerta**: si algún número está inflado o no es señal real de nada (views sin guardados, por ejemplo), decímelo.',
+    '',
+    'Formato: directo, con bullets. Nada de introducciones ni resúmenes de lo que te pedí.'
+  ]);
+  verPrompt('Analizar mis métricas',t,
+    'Copialo y pegalo en Claude o el chat que uses. Ya incluye tu perfil de marca y las '+ps.length+' publicaciones cargadas.');
+}
+
+/* ══════════════ 8. Espía de competencia ══════════════ */
+VISTAS.espia=function(){
+  const refs=S.refs;
+  let h=head('🕵️','Espía de competencia','Cargá los referentes que te interesan, guardá sus videos que explotaron y sacá el patrón para adaptarlo a tu marca.',
+    '<button class="btn pri" id="e_new">+ Referente</button>')+avisoMarca();
+
+  if(!refs.length) return h+vacio('Sin referentes cargados',
+    'Elegí 3 a 5 cuentas de tu nicho que estén creciendo. No para copiarlas: para entender qué estructura les funciona y traducirla a tu voz.',
+    '<button class="btn pri" id="e_new2">+ Cargar el primero</button>');
+
+  const act=refs.find(r=>r.id===ctx.ref)||refs[0];
+  const vids=(act.videos||[]).slice().sort((a,b)=>nn(b.views)-nn(a.views));
+
+  h+='<div class="split"><div class="rail">'+
+    refs.map(r=>'<button class="railitem'+(r.id===act.id?' on':'')+'" data-ref="'+r.id+'">'+
+      '<span class="av">'+esc((r.nombre||'?').trim().charAt(0).toUpperCase())+'</span>'+
+      '<span style="min-width:0;flex:1"><span class="t">'+esc(r.nombre||'Sin nombre')+'</span>'+
+      '<span class="m">'+esc(r.handle||r.nicho||'')+' · '+((r.videos||[]).length)+' videos</span></span></button>').join('')+
+  '</div><div style="min-width:0">'+
+
+  '<div class="card"><div class="row" style="align-items:flex-start">'+
+    '<div style="flex:1;min-width:0"><h3 style="font-size:19px">'+esc(act.nombre||'Sin nombre')+'</h3>'+
+    '<div class="row" style="margin-top:7px;gap:6px">'+
+      (act.handle?'<span class="chip mg">'+esc(act.handle)+'</span>':'')+
+      (act.nicho?'<span class="chip">'+esc(act.nicho)+'</span>':'')+
+      (act.seguidores?'<span class="chip">'+esc(act.seguidores)+' seguidores</span>':'')+
+      (act.url?'<a class="chip ac" href="'+esc(act.url)+'" target="_blank" rel="noopener">Ver perfil ↗</a>':'')+
+    '</div>'+
+    (act.notas?'<p class="muted" style="margin:9px 0 0;font-size:13px">'+esc(act.notas)+'</p>':'')+'</div>'+
+    '<div class="acts"><button class="btn sm ghost" data-eref="'+act.id+'">Editar</button>'+
+    '<button class="btn sm ghost danger" data-dref="'+act.id+'">Borrar</button></div></div>'+
+    '<div class="row" style="margin-top:14px">'+
+      '<button class="btn pri" id="e_vid">+ Cargar video</button>'+
+      '<button class="btn" id="e_patron" '+(vids.length>1?'':'disabled')+'>✨ Sacar el patrón de '+(act.nombre||'').split(' ')[0]+'</button>'+
+    '</div></div>';
+
+  if(!vids.length){
+    h+='<div style="margin-top:14px">'+vacio('Sin videos guardados',
+      'Andá a su perfil, ordená por más vistos y guardá los 5 que más explotaron. Anotá el hook textual: ahí está el 80% del trabajo.')+'</div>';
+  } else {
+    h+='<div class="sect" style="margin-top:20px"><span class="lab">Sus mejores videos · '+vids.length+'</span><div class="grid">'+
+      vids.map(v=>'<div class="item"><div class="body">'+
+        '<h4>'+esc(v.hook||v.titulo||'Sin hook anotado')+'</h4>'+
+        '<div class="row" style="margin-top:7px;gap:6px">'+
+          '<span class="chip ac">'+fmt(nn(v.views))+' views</span>'+
+          (v.formato?'<span class="chip">'+esc(v.formato)+'</span>':'')+
+          (v.angulo?'<span class="chip mg">'+esc(v.angulo)+'</span>':'')+
+          (nn(v.likes)?'<span class="chip">'+fmt(nn(v.likes))+' likes</span>':'')+
+          (nn(v.coments)?'<span class="chip">'+fmt(nn(v.coments))+' coments</span>':'')+
+          (v.url?'<a class="chip" href="'+esc(v.url)+'" target="_blank" rel="noopener">Ver ↗</a>':'')+
+        '</div>'+
+        (v.notas?'<p>'+esc(v.notas)+'</p>':'')+
+        (v.analisis?'<details style="margin-top:9px"><summary class="lab" style="cursor:pointer">Análisis guardado</summary>'+
+          '<div class="prompt" style="margin-top:8px;max-height:260px">'+esc(v.analisis)+'</div></details>':'')+
+      '</div><div class="acts">'+
+        '<button class="btn sm pri" data-adapt="'+v.id+'">✨ Adaptar</button>'+
+        '<button class="btn sm ghost" data-evid="'+v.id+'">Editar</button>'+
+        '<button class="btn sm ghost danger" data-dvid="'+v.id+'">✕</button>'+
+      '</div></div>').join('')+'</div></div>';
+  }
+  return h+'</div></div>';
+};
+VISTAS.espia_mount=function(){
+  const n1=$('#e_new'),n2=$('#e_new2'); if(n1)n1.onclick=()=>formRef(); if(n2)n2.onclick=()=>formRef();
+  $$('[data-ref]').forEach(el=>el.onclick=()=>ir('espia',{ref:el.dataset.ref}));
+  const refs=S.refs, act=refs.find(r=>r.id===ctx.ref)||refs[0];
+  if(!act) return;
+  const ev=$('#e_vid'); if(ev) ev.onclick=()=>formVideo(act.id);
+  const ep=$('#e_patron'); if(ep) ep.onclick=()=>promptPatron(act);
+  $$('[data-eref]').forEach(el=>el.onclick=()=>formRef(el.dataset.eref));
+  $$('[data-dref]').forEach(el=>el.onclick=()=>confirmar('¿Borrar a '+(act.nombre||'este referente')+' y todos sus videos?',()=>{
+    S.refs=S.refs.filter(r=>r.id!==el.dataset.dref); guardar(true); ctx={}; pintarNav(); pintar(); toast('Borrado');
+  }));
+  $$('[data-evid]').forEach(el=>el.onclick=()=>formVideo(act.id,el.dataset.evid));
+  $$('[data-adapt]').forEach(el=>el.onclick=()=>promptAdaptar(act,(act.videos||[]).find(v=>v.id===el.dataset.adapt)));
+  $$('[data-dvid]').forEach(el=>el.onclick=()=>confirmar('¿Borrar este video?',()=>{
+    act.videos=(act.videos||[]).filter(v=>v.id!==el.dataset.dvid); guardar(true); pintar(); toast('Borrado');
+  }));
+};
+function formRef(id){
+  const r=id?S.refs.find(x=>x.id===id):{id:uid(),videos:[]};
+  if(!r) return;
+  modal(id?'Editar referente':'Nuevo referente','<div class="fgrid">'+
+    campo('Nombre',inp('r_nombre',r.nombre,'Fulano de Tal'))+
+    campo('Usuario',inp('r_handle',r.handle,'@fulano'))+
+    campo('Nicho / ángulo',inp('r_nicho',r.nicho,'Ventas B2B'))+
+    campo('Seguidores',inp('r_seguidores',r.seguidores,'180 mil'))+
+    campo('Link del perfil',inp('r_url',r.url,'https://instagram.com/…','url'),1)+
+    campo('Por qué lo seguís',ta('r_notas',r.notas,'Hace el mismo tema que yo pero con dramatizaciones. Sus carruseles de objeciones vuelan.',70),1)+
+  '</div>',
+  '<button class="btn ghost" data-cerrar>Cancelar</button><button class="btn pri" id="r_ok">Guardar</button>',
+  m=>{ m.querySelector('#r_ok').onclick=()=>{
+    ['nombre','handle','nicho','seguidores','url','notas'].forEach(k=>{ r[k]=m.querySelector('#r_'+k).value.trim(); });
+    if(!r.nombre){ toast('Ponele un nombre',true); return; }
+    if(!S.refs.some(x=>x.id===r.id)) S.refs.push(r);
+    guardar(true); cerrarModal(); ir('espia',{ref:r.id}); toast('Guardado ✓');
+  };});
+}
+const ANGULOS=['','Educativo','Contra-opinión','Caso real','Lista','POV / dramatización','Antes y después','Mito vs verdad','Detrás de escena','Storytelling','Reacción'];
+function formVideo(refId,vid){
+  const r=S.refs.find(x=>x.id===refId); if(!r) return; r.videos=r.videos||[];
+  const v=vid?r.videos.find(x=>x.id===vid):{id:uid(),formato:'Reel'};
+  if(!v) return;
+  modal(vid?'Editar video':'Nuevo video de '+(r.nombre||''),'<div class="fgrid">'+
+    campo('Hook textual (los primeros 3 segundos, tal cual los dice)',ta('v_hook',v.hook,'Si tu cliente te dice "lo voy a pensar", ya perdiste antes de empezar.',66),1)+
+    campo('Link',inp('v_url',v.url,'https://…','url'),1)+
+    campo('Formato',sel('v_formato',v.formato||'Reel',FORMATOS))+
+    campo('Ángulo',sel('v_angulo',v.angulo||'',ANGULOS))+
+    campo('Views',inp('v_views',v.views,'0'))+
+    campo('Likes',inp('v_likes',v.likes,'0'))+
+    campo('Comentarios',inp('v_coments',v.coments,'0'))+
+    campo('Duración',inp('v_duracion',v.duracion,'0:38'))+
+    campo('Estructura / qué hace bien',ta('v_notas',v.notas,'Arranca con la objeción en pantalla, corta cada 2 seg, cierra con pregunta abierta.',70),1)+
+    campo('Transcripción (si la tenés)',ta('v_transcripcion',v.transcripcion,'Pegá la desgrabación acá. Con esto el análisis se vuelve mucho más filoso.',90),1)+
+  '</div>',
+  '<button class="btn ghost" data-cerrar>Cancelar</button><button class="btn pri" id="v_ok">Guardar</button>',
+  m=>{ m.querySelector('#v_ok').onclick=()=>{
+    ['hook','url','formato','angulo','views','likes','coments','duracion','notas','transcripcion'].forEach(k=>{ v[k]=m.querySelector('#v_'+k).value.trim(); });
+    if(!v.hook&&!v.url){ toast('Cargá al menos el hook o el link',true); return; }
+    if(!r.videos.some(x=>x.id===v.id)) r.videos.push(v);
+    guardar(true); cerrarModal(); pintar(); toast('Guardado ✓');
+  };});
+}
+function promptAdaptar(r,v){
+  if(!v) return;
+  const t=lines([
+    'Actuá como estratega de contenido para redes. Español rioplatense, directo, sin relleno.',
+    '','Te paso un video de un referente de mi nicho que funcionó muy bien. Quiero entender por qué funcionó y traducirlo a mi marca sin copiarlo.',
+    '',ctxMarca({}),'',
+    '## EL VIDEO DEL REFERENTE',
+    '- Referente: '+(r.nombre||'')+(r.handle?' ('+r.handle+')':'')+(r.nicho?' — '+r.nicho:''),
+    (r.seguidores?'- Tamaño de la cuenta: '+r.seguidores:''),
+    '- Hook textual: "'+(v.hook||'(no anotado)')+'"',
+    '- Formato: '+(v.formato||'—')+(v.duracion?' · '+v.duracion:''),
+    (v.angulo?'- Ángulo: '+v.angulo:''),
+    '- Números: '+fmt(nn(v.views))+' views'+(nn(v.likes)?', '+fmt(nn(v.likes))+' likes':'')+(nn(v.coments)?', '+fmt(nn(v.coments))+' comentarios':''),
+    (v.url?'- Link: '+v.url:''),
+    (v.notas?'- Lo que noté de la estructura: '+v.notas:''),
+    (v.transcripcion?'\n### Transcripción del video\n'+v.transcripcion:''),
+    '','## LO QUE NECESITO',
+    '1. **Por qué funcionó.** El mecanismo real: qué tensión abre en los primeros 3 segundos, qué promesa hace, por qué la gente se queda. Máximo 5 bullets, sin obviedades.',
+    '2. **La estructura desarmada**, segundo a segundo o bloque por bloque, en formato de plantilla reutilizable (hook → desarrollo → giro → cierre → CTA).',
+    '3. **3 adaptaciones a MI marca**, cada una con: hook textual nuevo (que suene a mí, no a él), ángulo, guion completo listo para grabar, y CTA alineado a mi oferta. Que sean tres ángulos distintos entre sí, no tres versiones del mismo.',
+    '4. **Qué NO copiar** de este video porque no encaja con mi audiencia o mi tono.',
+    '5. **Un test**: qué métrica mirar para saber si la adaptación funcionó y cuál es el número mínimo que la valida, comparado con mis promedios.',
+    '','Escribí los guiones para decir en voz alta, no para leer. Frases cortas. Nada de "en este video te voy a contar".'
+  ]);
+  verPrompt('Adaptar a mi marca',t,'Pegalo en Claude. Cuando tengas la respuesta, podés guardarla en el video con «Editar» → notas, o cargar los hooks nuevos en <b>Ideas y guiones</b>.');
+}
+function promptPatron(r){
+  const vids=(r.videos||[]).slice().sort((a,b)=>nn(b.views)-nn(a.views));
+  const t=lines([
+    'Actuá como analista de contenido. Español rioplatense, concreto.',
+    '','Te paso los videos que mejor le funcionaron a un referente de mi nicho. Quiero el patrón, no un resumen de cada uno.',
+    '',ctxMarca({biblio:false}),'',
+    '## LOS VIDEOS DE '+(r.nombre||'').toUpperCase()+(r.handle?' ('+r.handle+')':''),
+    (r.nicho?'Nicho: '+r.nicho:''),(r.seguidores?'Tamaño: '+r.seguidores+' seguidores':''),'',
+    vids.map((v,i)=>lines([
+      (i+1)+'. Hook: "'+(v.hook||'(sin anotar)')+'"',
+      '   Formato: '+(v.formato||'—')+(v.angulo?' | Ángulo: '+v.angulo:'')+(v.duracion?' | '+v.duracion:''),
+      '   Números: '+fmt(nn(v.views))+' views'+(nn(v.likes)?' · '+fmt(nn(v.likes))+' likes':'')+(nn(v.coments)?' · '+fmt(nn(v.coments))+' coments':''),
+      (v.notas?'   Estructura: '+v.notas:'')
+    ])).join('\n'),
+    '','## LO QUE NECESITO',
+    '1. **El patrón**: qué se repite en los hooks (estructura sintáctica, tipo de tensión, longitud) y en el desarrollo. Dame la fórmula en una línea.',
+    '2. **Los 3 ángulos que más le rinden** y por qué su audiencia responde a eso.',
+    '3. **Qué de todo esto se traduce a mi marca y qué no**, dado mi nicho, mi audiencia y mi tono.',
+    '4. **10 hooks nuevos míos** construidos con esa fórmula pero sobre mis temas. Numerados, sin explicación.',
+    '5. **El hueco**: un ángulo que él NO está tocando y que yo puedo ocupar. Justificalo con lo que ves en los datos.',
+    '','Nada de introducciones. Empezá directo por el punto 1.'
+  ]);
+  verPrompt('Patrón de '+(r.nombre||''),t,'Análisis cruzado de sus '+vids.length+' videos guardados, con tu perfil de marca incluido.');
+}
+
+/* ══════════════ 9. Ideas y guiones ══════════════ */
+const TIPOS=[['hook','Hook','🪝'],['guion','Guion','🎬'],['cta','CTA','📣'],['transcripcion','Transcripción','📝'],['idea','Idea','💡']];
+const OBJETIVOS=[
+  ['ideas','20 ideas de contenido'],
+  ['reel','Guion de Reel (30-45 seg)'],
+  ['carrusel','Carrusel de 8 slides'],
+  ['caption','Caption + CTA'],
+  ['hooks','30 hooks nuevos'],
+  ['serie','Serie de 5 videos encadenados']
+];
+VISTAS.ideas=function(){
+  const filtro=ctx.tipo||'todos';
+  const items=S.biblio.filter(b=>filtro==='todos'||b.tipo===filtro)
+    .slice().sort((a,b)=>String(b.creado||'').localeCompare(String(a.creado||'')));
+  const pil=(S.marca.pilares||'').split('\n').map(s=>s.trim()).filter(Boolean);
+
+  let h=head('🧠','Ideas y guiones','Tu banco de contenido propio. Cuanto más cargues acá, más se parece a vos lo que genera la IA.',
+    '<button class="btn pri" id="i_new">+ Agregar al banco</button>')+avisoMarca();
+
+  h+='<div class="card"><div class="row" style="align-items:flex-end;gap:12px">'+
+    '<div class="field" style="flex:1.4;min-width:180px"><label>Qué querés generar</label>'+
+      '<select id="i_obj">'+OBJETIVOS.map(o=>'<option value="'+o[0]+'">'+o[1]+'</option>').join('')+'</select></div>'+
+    '<div class="field" style="flex:1;min-width:150px"><label>Pilar</label>'+
+      '<select id="i_pilar"><option value="">Todos los pilares</option>'+pil.map(p=>'<option>'+esc(p)+'</option>').join('')+'</select></div>'+
+    '<div class="field" style="flex:1.6;min-width:200px"><label>Tema o disparador (opcional)</label>'+
+      '<input type="text" id="i_tema" placeholder="El cliente que dice «lo voy a pensar»"></div>'+
+    '<button class="btn pri" id="i_gen">✨ Armar prompt</button>'+
+  '</div><p class="hint" style="margin:11px 0 0">El prompt sale con tu perfil de marca, tus '+
+    S.biblio.filter(b=>b.tipo==='hook').length+' hooks guardados y tus publicaciones que mejor funcionaron adentro.</p></div>';
+
+  h+='<div class="sect"><div class="row" style="margin-bottom:11px">'+
+    '<span class="lab">Banco de contenido</span><div style="margin-left:auto" class="row">'+
+    ['todos'].concat(TIPOS.map(t=>t[0])).map(t=>{
+      const lab=t==='todos'?'Todo':TIPOS.find(x=>x[0]===t)[1];
+      const c=t==='todos'?S.biblio.length:S.biblio.filter(b=>b.tipo===t).length;
+      return '<button class="btn sm '+(filtro===t?'':'ghost')+'" data-tipo="'+t+'">'+esc(lab)+' <span class="dim tnum">'+c+'</span></button>';
+    }).join('')+'</div></div>';
+
+  if(!items.length){
+    h+=vacio('Banco vacío'+(filtro!=='todos'?' en esta categoría':''),
+      'Empezá pegando las transcripciones de tus 5 mejores videos y los hooks que más te gustaron. Eso es lo que le da tu voz a la IA.',
+      '<button class="btn pri" id="i_new2">+ Agregar al banco</button>');
+  } else {
+    h+='<div class="grid">'+items.map(b=>{
+      const T=TIPOS.find(t=>t[0]===b.tipo)||TIPOS[4];
+      const txt=String(b.texto||'');
+      return '<div class="item"><div class="body">'+
+        '<div class="row" style="gap:6px;margin-bottom:6px"><span class="chip ac">'+T[2]+' '+T[1]+'</span>'+
+        (b.pilar?'<span class="chip">'+esc(b.pilar)+'</span>':'')+
+        (b.creado?'<span class="chip">'+fecha(b.creado)+'</span>':'')+'</div>'+
+        (b.titulo?'<h4>'+esc(b.titulo)+'</h4>':'')+
+        '<p style="white-space:pre-wrap">'+esc(txt.length>420?txt.slice(0,420)+'…':txt)+'</p>'+
+      '</div><div class="acts">'+
+        '<button class="btn sm ghost" data-copy="'+b.id+'">📋</button>'+
+        '<button class="btn sm ghost" data-eb="'+b.id+'">Editar</button>'+
+        '<button class="btn sm ghost danger" data-db="'+b.id+'">✕</button></div></div>';
+    }).join('')+'</div>';
+  }
+  return h+'</div>';
+};
+VISTAS.ideas_mount=function(){
+  const a=$('#i_new'),b=$('#i_new2'); if(a)a.onclick=()=>formBiblio(); if(b)b.onclick=()=>formBiblio();
+  $$('[data-tipo]').forEach(el=>el.onclick=()=>ir('ideas',{tipo:el.dataset.tipo}));
+  $$('[data-eb]').forEach(el=>el.onclick=()=>formBiblio(el.dataset.eb));
+  $$('[data-copy]').forEach(el=>el.onclick=()=>{const b=S.biblio.find(x=>x.id===el.dataset.copy); if(b) copiar(b.texto||'','Copiado');});
+  $$('[data-db]').forEach(el=>el.onclick=()=>confirmar('¿Borrar este item del banco?',()=>{
+    S.biblio=S.biblio.filter(x=>x.id!==el.dataset.db); guardar(true); pintarNav(); pintar(); toast('Borrado');
+  }));
+  $('#i_gen').onclick=()=>promptIdeas($('#i_obj').value,$('#i_pilar').value,$('#i_tema').value.trim());
+};
+function formBiblio(id){
+  const b=id?S.biblio.find(x=>x.id===id):{id:uid(),tipo:'hook',creado:hoy()};
+  if(!b) return;
+  const pil=(S.marca.pilares||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  modal(id?'Editar':'Agregar al banco','<div class="fgrid">'+
+    campo('Tipo','<select id="b_tipo">'+TIPOS.map(t=>'<option value="'+t[0]+'"'+(b.tipo===t[0]?' selected':'')+'>'+t[2]+' '+t[1]+'</option>').join('')+'</select>')+
+    campo('Pilar',pil.length?'<select id="b_pilar"><option value="">—</option>'+pil.map(p=>'<option'+(b.pilar===p?' selected':'')+'>'+esc(p)+'</option>').join('')+'</select>':inp('b_pilar',b.pilar,''))+
+    campo('Título / referencia',inp('b_titulo',b.titulo,'Hook de objeción — el que mejor anduvo'),1)+
+    campo('Texto',ta('b_texto',b.texto,'Pegá acá el hook, el guion completo o la transcripción.',170),1)+
+  '</div>',
+  '<button class="btn ghost" data-cerrar>Cancelar</button><button class="btn pri" id="b_ok">Guardar</button>',
+  m=>{ m.querySelector('#b_ok').onclick=()=>{
+    ['tipo','pilar','titulo','texto'].forEach(k=>{ const el=m.querySelector('#b_'+k); if(el) b[k]=el.value.trim(); });
+    if(!b.texto){ toast('Falta el texto',true); return; }
+    if(!S.biblio.some(x=>x.id===b.id)) S.biblio.unshift(b);
+    guardar(true); cerrarModal(); pintarNav(); pintar(); toast('Guardado ✓');
+  };});
+}
+function promptIdeas(obj,pilar,tema){
+  const pedidos={
+    ideas:['Dame **20 ideas de contenido** listas para producir.',
+      'Cada una con: (a) el hook textual de los primeros 3 segundos, (b) el ángulo en una línea, (c) el formato que le va mejor (Reel / carrusel / historia) y por qué, (d) el CTA.',
+      'Ordenalas de mayor a menor potencial de alcance y decime en una línea qué criterio usaste.'],
+    reel:['Escribí **un guion de Reel de 30 a 45 segundos**, listo para grabar.',
+      'Estructura: hook (0-3s) → tensión (3-10s) → desarrollo con 2 o 3 puntos concretos → giro o dato que no esperaban → CTA.',
+      'Marcá los tiempos. Frases cortas, para decir en voz alta. Indicá aparte: qué se ve en pantalla en cada bloque y qué texto va sobreimpreso.',
+      'Al final dame 3 hooks alternativos para testear el mismo guion.'],
+    carrusel:['Escribí **un carrusel de 8 slides**.',
+      'Slide 1: la portada, con el gancho que frena el scroll (máximo 9 palabras).',
+      'Slides 2 a 7: una idea por slide, título corto arriba y 2 o 3 líneas abajo. Nada de párrafos.',
+      'Slide 8: cierre + CTA.',
+      'Después del carrusel, escribí el caption completo y 5 hashtags que use gente de mi nicho, no genéricos.'],
+    caption:['Escribí **3 captions** para el mismo contenido, con enfoques distintos: uno que abre en historia, uno que abre con dato, uno que abre con pregunta incómoda.',
+      'Cada uno: primera línea que corte el scroll, cuerpo de 4 a 8 líneas con espacios, y CTA claro.',
+      'Decime cuál elegirías y por qué.'],
+    hooks:['Dame **30 hooks nuevos**, numerados, sin explicaciones.',
+      'Repartilos en 6 estructuras (5 de cada una): la objeción, el error caro, el número raro, la contra-opinión, el "si te pasa X", y la confesión.',
+      'Que suenen a mí: mismo largo y mismo ritmo que los hooks míos que te pasé.',
+      'Al final marcá los 5 que apostarías y por qué.'],
+    serie:['Diseñá **una serie de 5 videos encadenados** sobre el mismo tema, uno por día.',
+      'Cada video: hook, promesa, contenido en 3 bullets, y el gancho que lleva al siguiente.',
+      'El video 5 tiene que cerrar hacia mi oferta sin sonar a venta desesperada.',
+      'Dame también el orden de publicación y qué historia va acompañando cada día.']
+  };
+  const t=lines([
+    'Actuá como el guionista de mi cuenta. Ya conocés mi voz: escribí como escribo yo, no como escribe una IA.',
+    '',ctxMarca({}),'',
+    (pilar?'## PILAR A TRABAJAR\n'+pilar:''),
+    (tema?'\n## TEMA / DISPARADOR\n'+tema:''),
+    '','## LO QUE NECESITO',
+    (pedidos[obj]||pedidos.ideas).join('\n'),
+    '','## REGLAS',
+    '- Español rioplatense. Voseo. Nada de "tú" ni de neutro.',
+    '- Frases cortas. Si una frase no se puede decir de una respiración, cortala.',
+    '- Prohibido: "en este video te voy a contar", "sin más preámbulos", "la clave está en", emojis decorativos.',
+    '- Cada pieza tiene que poder existir sola: nada de "como te dije en el post anterior".',
+    (S.marca.prohibido?'- '+S.marca.prohibido:''),
+    '- No me expliques lo que vas a hacer. Hacelo.'
+  ]);
+  const nom=(OBJETIVOS.find(o=>o[0]===obj)||OBJETIVOS[0])[1];
+  verPrompt(nom,t,'Pegalo en Claude. Lo que te devuelva, guardalo en el banco con «+ Agregar al banco» para que los próximos prompts salgan todavía más afinados.');
+}
+
+/* ══════════════ 10. Variantes de un ganador ══════════════ */
+const TRANSFORMS=[
+  ['La objeción','Poné en boca del espectador la objeción exacta que resuelve el video.',h=>'"'+corto(h)+'"… eso me dijo un cliente antes de firmar.'],
+  ['El error caro','Mismo contenido, encuadrado como el error que le está costando plata.',h=>'El error que te está costando ventas: '+minus(corto(h))+'.'],
+  ['Contra-opinión','Arrancá negando lo que todos repiten sobre el tema.',h=>'Todos dicen que '+minus(corto(h))+'. Están equivocados.'],
+  ['Lista numerada','Convertí el mismo tema en una lista rápida y concreta.',h=>'3 cosas que nadie te dice sobre '+minus(corto(h))+'.'],
+  ['POV / dramatización','Actuá la escena en vez de explicarla.',h=>'POV: '+minus(corto(h))+' y no sabés qué contestar.'],
+  ['Antes y después','Mostrá el contraste entre cómo lo hacías y cómo lo hacés ahora.',h=>'Así lo hacía antes. Así lo hago ahora. La diferencia son '+minus(corto(h))+'.'],
+  ['Caso real','El mismo aprendizaje contado como el caso de un cliente concreto.',h=>'Un cliente me escribió por esto. Lo que pasó después te va a sorprender.'],
+  ['Mito vs verdad','Desarmá la creencia que rodea al tema.',h=>'Mito: '+minus(corto(h))+'. Verdad: casi nunca es así.'],
+  ['La pregunta','Abrí con la pregunta que la gente no se anima a hacer.',h=>'¿'+cap(minus(corto(h)))+'? Nadie te lo va a decir con esta claridad.'],
+  ['La analogía','Explicá lo mismo con una comparación de la vida cotidiana.',h=>'Esto es como ir al gimnasio una vez y esperar el cuerpo. Con '+minus(corto(h))+' pasa igual.']
+];
+function corto(s){ s=String(s||'').replace(/\s+/g,' ').trim().replace(/[.!?]+$/,''); return s.length>72?s.slice(0,72).replace(/\s\S*$/,'')+'…':s||'este tema'; }
+function minus(s){ return s.charAt(0).toLowerCase()+s.slice(1); }
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+VISTAS.variantes=function(){
+  const ps=S.posts.slice().sort((a,b)=>nn(b.views)-nn(a.views));
+  let h=head('♻️','Variantes de un ganador','Un video que funcionó no se usa una sola vez. Elegí uno y sacale 5 a 10 versiones distintas para volver a probar el mismo ángulo.')+avisoMarca();
+
+  if(!ps.length) return h+vacio('Primero necesitás métricas cargadas',
+    'Este módulo trabaja sobre publicaciones que ya funcionaron. Cargá al menos una en Métricas y volvé.',
+    '<button class="btn pri" data-go="metricas">Ir a Métricas</button>');
+
+  const act=ps.find(p=>p.id===ctx.post)||ps[0];
+  const guardadas=S.variantes.filter(v=>v.postId===act.id);
+
+  h+='<div class="card"><div class="fgrid"><div class="field f2"><label>Video ganador</label>'+
+    '<select id="vr_post">'+ps.map(p=>'<option value="'+p.id+'"'+(p.id===act.id?' selected':'')+'>'+
+      esc(p.titulo||'Sin título')+' — '+fmt(nn(p.views))+' views · '+pct(engagement(p))+'</option>').join('')+'</select></div>'+
+    '<div class="field"><label>Cuántas variantes</label><select id="vr_n">'+
+      [5,6,7,8,9,10].map(n=>'<option'+(n===8?' selected':'')+'>'+n+'</option>').join('')+'</select></div></div>'+
+    '<div class="row" style="margin-top:14px">'+
+      '<button class="btn pri" id="vr_gen">♻️ Generar variantes</button>'+
+      '<button class="btn" id="vr_prompt">✨ Prompt para guiones completos</button></div>'+
+    '<p class="hint" style="margin:11px 0 0">«Generar variantes» te arma los ángulos y los hooks acá mismo y los guarda. El prompt es para que la IA escriba los guiones enteros.</p>'+
+  '</div>';
+
+  h+='<div class="sect"><span class="lab">El original</span><div class="item">'+
+    '<div class="body"><h4>'+esc(act.titulo||'Sin título')+'</h4>'+
+    '<div class="row" style="margin-top:7px;gap:6px"><span class="chip ac">'+fmt(nn(act.views))+' views</span>'+
+    '<span class="chip ok">'+pct(engagement(act))+'</span><span class="chip">'+esc(act.formato||'—')+'</span>'+
+    (act.pilar?'<span class="chip mg">'+esc(act.pilar)+'</span>':'')+'<span class="chip">'+fecha(act.fecha)+'</span></div>'+
+    (act.hook?'<p>“'+esc(act.hook)+'”</p>':'<p class="dim">Sin hook anotado — cargalo en Métricas para que las variantes salgan mejor.</p>')+
+    '</div></div></div>';
+
+  if(guardadas.length){
+    h+='<div class="sect"><div class="row" style="margin-bottom:11px"><span class="lab">Variantes guardadas · '+guardadas.length+'</span>'+
+      '<button class="btn sm ghost" id="vr_copyall" style="margin-left:auto">📋 Copiar todas</button></div><div class="grid">'+
+      guardadas.map((v,i)=>'<div class="item"><div class="av" style="background:var(--surface3)">'+(i+1)+'</div><div class="body">'+
+        '<div class="row" style="gap:6px;margin-bottom:6px"><span class="chip mg">'+esc(v.angulo)+'</span>'+
+        '<span class="chip '+(v.estado==='Publicada'?'ok':v.estado==='Grabada'?'wr':'')+'">'+esc(v.estado||'Pendiente')+'</span></div>'+
+        '<h4>'+esc(v.hook)+'</h4><p>'+esc(v.nota)+'</p></div>'+
+        '<div class="acts">'+
+          '<button class="btn sm ghost" data-vest="'+v.id+'">→ '+esc(v.estado==='Pendiente'?'Grabada':v.estado==='Grabada'?'Publicada':'Pendiente')+'</button>'+
+          '<button class="btn sm ghost danger" data-vdel="'+v.id+'">✕</button></div></div>').join('')+
+    '</div></div>';
+  }
+  return h;
+};
+VISTAS.variantes_mount=function(){
+  const s=$('#vr_post'); if(!s) return;
+  s.onchange=()=>ir('variantes',{post:s.value});
+  $('#vr_gen').onclick=()=>{
+    const post=S.posts.find(p=>p.id===s.value); if(!post) return;
+    const n=parseInt($('#vr_n').value,10)||8;
+    const base=post.hook||post.titulo||'';
+    const usados=S.variantes.filter(v=>v.postId===post.id).map(v=>v.angulo);
+    const libres=TRANSFORMS.filter(t=>usados.indexOf(t[0])<0);
+    const pool=libres.length>=n?libres:TRANSFORMS;
+    pool.slice(0,n).forEach(t=>{
+      S.variantes.push({id:uid(),postId:post.id,angulo:t[0],nota:t[1],hook:t[2](base),estado:'Pendiente',creado:hoy()});
+    });
+    guardar(true); pintarNav(); pintar(); toast(Math.min(n,pool.length)+' variantes generadas ✓');
+  };
+  $('#vr_prompt').onclick=()=>{
+    const post=S.posts.find(p=>p.id===s.value); if(post) promptVariantes(post,parseInt($('#vr_n').value,10)||8);
+  };
+  const ca=$('#vr_copyall');
+  if(ca) ca.onclick=()=>{
+    const g=S.variantes.filter(v=>v.postId===s.value);
+    copiar(g.map((v,i)=>(i+1)+'. ['+v.angulo+'] '+v.hook+'\n   '+v.nota).join('\n\n'),'Variantes copiadas');
+  };
+  $$('[data-vest]').forEach(el=>el.onclick=()=>{
+    const v=S.variantes.find(x=>x.id===el.dataset.vest); if(!v) return;
+    v.estado=v.estado==='Pendiente'?'Grabada':v.estado==='Grabada'?'Publicada':'Pendiente';
+    guardar(true); pintar();
+  });
+  $$('[data-vdel]').forEach(el=>el.onclick=()=>{
+    S.variantes=S.variantes.filter(x=>x.id!==el.dataset.vdel); guardar(true); pintarNav(); pintar(); toast('Borrada');
+  });
+};
+function promptVariantes(p,n){
+  const t=lines([
+    'Actuá como el guionista de mi cuenta. Español rioplatense, voseo, frases cortas.',
+    '','Tengo un video que funcionó bien y quiero exprimir el ángulo con versiones nuevas, no repetir el mismo video.',
+    '',ctxMarca({}),'',
+    '## EL VIDEO QUE FUNCIONÓ',
+    '- Tema: '+(p.titulo||'—'),
+    '- Formato: '+(p.formato||'—')+' en '+(p.plataforma||'—')+(p.pilar?' | pilar: '+p.pilar:''),
+    '- Hook original: "'+(p.hook||'(no anotado)')+'"',
+    '- Números: '+fmt(nn(p.views))+' views, '+fmt(nn(p.likes))+' likes, '+fmt(nn(p.coments))+' comentarios, '+
+      fmt(nn(p.guardados))+' guardados, '+fmt(nn(p.compartidos))+' compartidos, +'+fmt(nn(p.seguidores))+' seguidores ('+pct(engagement(p))+' de engagement)',
+    (p.cta?'- CTA que usé: '+p.cta:''),
+    (p.transcripcion?'\n### Transcripción del original\n'+p.transcripcion:''),
+    (p.notas?'\n### Mis notas\n'+p.notas:''),
+    '','## LO QUE NECESITO',
+    'Primero, en 3 bullets: **por qué creés que este funcionó**, mirando los números (guardados y compartidos pesan más que los likes).',
+    '',
+    'Después, **'+n+' variantes** del mismo ángulo. Cada una con:',
+    '- Un nombre de ángulo (la objeción, el error caro, la contra-opinión, POV, lista, caso real, mito vs verdad, la analogía, la confesión, el antes y después… no repitas).',
+    '- **Hook textual nuevo** (0-3 segundos). Tiene que sonar distinto al original, no ser una reescritura.',
+    '- **Guion completo** con tiempos, listo para grabar.',
+    '- Qué cambia en pantalla (planos, texto sobreimpreso).',
+    '- CTA.',
+    '- Una línea: qué hipótesis está testeando esta variante.',
+    '',
+    'Al final, **el orden en que las publicaría** y cuánto tiempo dejaría entre una y otra para no quemar el tema.',
+    '','Nada de introducciones. Empezá por los 3 bullets.'
+  ]);
+  verPrompt('Guiones de las variantes',t,'Este prompt pide los guiones completos. Los ángulos rápidos los tenés con el botón «Generar variantes».');
+}
+
+/* ══════════════ 11. Secuencias de historias ══════════════ */
+const STICKERS=['','Encuesta','Pregunta','Cuenta regresiva','Quiz','Deslizá para arriba','Link','Emoji slider','Música'];
+function limpiarNombre(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9\-_ ]/g,'').trim().replace(/\s+/g,'-').slice(0,40)||'historia'; }
+
+async function comprimirImagen(file){
+  const url=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+  const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; });
+  const maxW=1080, maxH=1920;
+  let w=img.naturalWidth, h=img.naturalHeight;
+  const k=Math.min(1,maxW/w,maxH/h); w=Math.round(w*k); h=Math.round(h*k);
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  c.getContext('2d').drawImage(img,0,0,w,h);
+  return c.toDataURL('image/jpeg',0.82);
+}
+
+VISTAS.historias=function(){
+  const secs=S.secuencias;
+  let h=head('📸','Secuencias de historias','Armá la secuencia completa con las fotos y los textos, y exportá todo en un ZIP numerado para subir sin pensar.',
+    '<button class="btn pri" id="h_new">+ Nueva secuencia</button>');
+
+  if(!secs.length) return h+vacio('Sin secuencias',
+    'Una secuencia es una tanda de historias pensada de punta a punta: apertura, desarrollo, cierre con CTA. Armala acá y exportala lista para subir.',
+    '<button class="btn pri" id="h_new2">+ Armar la primera</button>');
+
+  const act=secs.find(s=>s.id===ctx.sec)||secs[0];
+  act.slides=act.slides||[];
+  const conFoto=act.slides.filter(s=>s.img).length;
+  const peso=Math.round(act.slides.reduce((a,s)=>a+(s.img?s.img.length*0.75:0),0)/1024);
+
+  h+='<div class="split"><div class="rail">'+
+    secs.map(s=>'<button class="railitem'+(s.id===act.id?' on':'')+'" data-sec="'+s.id+'">'+
+      '<span class="av">'+((s.slides||[]).length||'0')+'</span>'+
+      '<span style="min-width:0;flex:1"><span class="t">'+esc(s.nombre||'Sin nombre')+'</span>'+
+      '<span class="m">'+fecha(s.fecha)+(s.cliente?' · '+esc(s.cliente):'')+'</span></span></button>').join('')+
+  '</div><div style="min-width:0">'+
+
+  '<div class="card"><div class="row" style="align-items:flex-start">'+
+    '<div style="flex:1;min-width:0"><h3 style="font-size:19px">'+esc(act.nombre||'Sin nombre')+'</h3>'+
+    '<div class="row" style="margin-top:7px;gap:6px"><span class="chip ac">'+act.slides.length+' historias</span>'+
+    '<span class="chip '+(conFoto===act.slides.length&&conFoto?'ok':'wr')+'">'+conFoto+' con foto</span>'+
+    (act.cliente?'<span class="chip">'+esc(act.cliente)+'</span>':'')+
+    '<span class="chip">'+fecha(act.fecha)+'</span>'+
+    (peso?'<span class="chip">'+(peso>1024?(peso/1024).toFixed(1)+' MB':peso+' KB')+'</span>':'')+'</div>'+
+    (act.objetivo?'<p class="muted" style="margin:9px 0 0;font-size:13px">'+esc(act.objetivo)+'</p>':'')+'</div>'+
+    '<div class="acts"><button class="btn sm ghost" data-esec="'+act.id+'">Editar</button>'+
+    '<button class="btn sm ghost danger" data-dsec="'+act.id+'">Borrar</button></div></div>'+
+    '<div class="row" style="margin-top:14px">'+
+      '<button class="btn pri" id="h_zip" '+(act.slides.length?'':'disabled')+'>📦 Exportar ZIP</button>'+
+      '<button class="btn" id="h_txt" '+(act.slides.length?'':'disabled')+'>📄 Guion en .txt</button>'+
+      '<button class="btn ghost" id="h_add">+ Historia</button>'+
+    '</div></div>';
+
+  h+='<div class="sect" style="margin-top:16px"><div class="drop" id="h_drop">'+
+    '<b style="color:var(--text2)">Soltá las fotos acá</b> o hacé clic para elegirlas — se agrega una historia por foto, en orden.'+
+    '<input type="file" id="h_files" accept="image/*" multiple hidden></div></div>';
+
+  if(act.slides.length){
+    h+='<div class="sect"><span class="lab">La secuencia</span><div class="slides">'+
+      act.slides.map((s,i)=>'<div class="slide"><div class="ph">'+
+        (s.img?'<img src="'+s.img+'" alt="Historia '+(i+1)+'">':
+          (s.link?'<img src="'+esc(s.link)+'" alt="Historia '+(i+1)+'" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'no\',textContent:\'El link no carga acá\'}))">':
+          '<div class="no">Sin foto<br><span class="dim">clic en 📷</span></div>'))+
+        '<span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
+        (s.texto?'<div class="ov">'+esc(s.texto.length>90?s.texto.slice(0,90)+'…':s.texto)+'</div>':'')+
+      '</div><div class="cf">'+
+        '<button class="btn sm ghost" data-sl="'+s.id+'">✏️</button>'+
+        '<button class="btn sm ghost" data-simg="'+s.id+'" title="Cambiar foto">📷</button>'+
+        '<button class="btn sm ghost" data-up="'+s.id+'" '+(i===0?'disabled':'')+'>←</button>'+
+        '<button class="btn sm ghost" data-dn="'+s.id+'" '+(i===act.slides.length-1?'disabled':'')+'>→</button>'+
+        '<button class="btn sm ghost danger" data-dsl="'+s.id+'">✕</button>'+
+      '</div>'+
+      (s.cta||s.sticker?'<div style="padding:0 8px 8px;display:flex;gap:4px;flex-wrap:wrap">'+
+        (s.sticker?'<span class="chip mg">'+esc(s.sticker)+'</span>':'')+
+        (s.cta?'<span class="chip ac">'+esc(s.cta)+'</span>':'')+'</div>':'')+
+      '</div>').join('')+'</div></div>';
+  } else {
+    h+='<div class="sect">'+vacio('Secuencia vacía','Soltá las fotos arriba o agregá historias una por una con «+ Historia».')+'</div>';
+  }
+  h+='<div class="sect"><span class="lab">Sobre el ZIP</span><div class="card"><p class="hint" style="margin:0">'+
+    'El ZIP sale con las fotos numeradas (<b>01.jpg, 02.jpg…</b>) en el orden de la secuencia y un <b>guion.txt</b> con el texto, el CTA y el sticker de cada historia. '+
+    'Descargalo al celular y subilas en orden sin pensar.</p></div></div>';
+  return h+'</div></div>';
+};
+VISTAS.historias_mount=function(){
+  const a=$('#h_new'),b=$('#h_new2'); if(a)a.onclick=()=>formSec(); if(b)b.onclick=()=>formSec();
+  $$('[data-sec]').forEach(el=>el.onclick=()=>ir('historias',{sec:el.dataset.sec}));
+  const secs=S.secuencias, act=secs.find(s=>s.id===ctx.sec)||secs[0];
+  if(!act) return; act.slides=act.slides||[];
+
+  $$('[data-esec]').forEach(el=>el.onclick=()=>formSec(el.dataset.esec));
+  $$('[data-dsec]').forEach(el=>el.onclick=()=>confirmar('¿Borrar la secuencia «'+(act.nombre||'')+'» y sus '+act.slides.length+' historias?',()=>{
+    S.secuencias=S.secuencias.filter(s=>s.id!==el.dataset.dsec); guardar(true); ctx={}; pintarNav(); pintar(); toast('Borrada');
+  }));
+  $('#h_add').onclick=()=>{ act.slides.push({id:uid()}); guardar(true); pintar(); };
+
+  const fi=$('#h_files'), dz=$('#h_drop');
+  if(dz){
+    dz.onclick=e=>{ if(e.target!==fi) fi.click(); };
+    dz.ondragover=e=>{ e.preventDefault(); dz.classList.add('over'); };
+    dz.ondragleave=()=>dz.classList.remove('over');
+    dz.ondrop=e=>{ e.preventDefault(); dz.classList.remove('over'); agregarFotos(act,e.dataTransfer.files); };
+    fi.onchange=()=>{ agregarFotos(act,fi.files); };
+  }
+  $$('[data-sl]').forEach(el=>el.onclick=()=>formSlide(act,el.dataset.sl));
+  $$('[data-simg]').forEach(el=>el.onclick=()=>{
+    const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+    inp.onchange=async()=>{ if(!inp.files[0])return;
+      try{ const s=act.slides.find(x=>x.id===el.dataset.simg); s.img=await comprimirImagen(inp.files[0]); guardar(true); pintar(); toast('Foto lista ✓'); }
+      catch(e){ toast('No pude leer esa imagen',true); } };
+    inp.click();
+  });
+  $$('[data-up]').forEach(el=>el.onclick=()=>mover(act,el.dataset.up,-1));
+  $$('[data-dn]').forEach(el=>el.onclick=()=>mover(act,el.dataset.dn,1));
+  $$('[data-dsl]').forEach(el=>el.onclick=()=>{
+    act.slides=act.slides.filter(s=>s.id!==el.dataset.dsl); guardar(true); pintar();
+  });
+  const z=$('#h_zip'); if(z) z.onclick=()=>exportarZip(act);
+  const tx=$('#h_txt'); if(tx) tx.onclick=()=>bajar(limpiarNombre(act.nombre)+'-guion.txt',new Blob([guionTexto(act)],{type:'text/plain;charset=utf-8'}));
+};
+function mover(sec,id,d){
+  const i=sec.slides.findIndex(s=>s.id===id), j=i+d;
+  if(i<0||j<0||j>=sec.slides.length) return;
+  const t=sec.slides[i]; sec.slides[i]=sec.slides[j]; sec.slides[j]=t;
+  guardar(true); pintar();
+}
+async function agregarFotos(sec,files){
+  const arr=Array.prototype.slice.call(files||[]).filter(f=>/^image\//.test(f.type));
+  if(!arr.length){ toast('No había imágenes ahí',true); return; }
+  toast('Procesando '+arr.length+' foto'+(arr.length>1?'s':'')+'…');
+  for(const f of arr){
+    try{ sec.slides.push({id:uid(),img:await comprimirImagen(f),nombre:f.name}); }
+    catch(e){ toast('No pude leer '+f.name,true); }
+  }
+  guardar(true); pintar(); toast(arr.length+' historia'+(arr.length>1?'s agregadas':' agregada')+' ✓');
+}
+function formSec(id){
+  const s=id?S.secuencias.find(x=>x.id===id):{id:uid(),fecha:hoy(),slides:[]};
+  if(!s) return;
+  modal(id?'Editar secuencia':'Nueva secuencia','<div class="fgrid">'+
+    campo('Nombre',inp('s_nombre',s.nombre,'Lanzamiento mentoría — día 1'),1)+
+    campo('Fecha',inp('s_fecha',s.fecha||hoy(),'','date'))+
+    campo('Cliente',inp('s_cliente',s.cliente,'Federico Ávila'))+
+    campo('Objetivo de la secuencia',ta('s_objetivo',s.objetivo,'Abrir el tema, mostrar el problema con un caso, cerrar con encuesta y link a la lista de espera.',70),1)+
+  '</div>',
+  '<button class="btn ghost" data-cerrar>Cancelar</button><button class="btn pri" id="s_ok">Guardar</button>',
+  m=>{ m.querySelector('#s_ok').onclick=()=>{
+    ['nombre','fecha','cliente','objetivo'].forEach(k=>{ s[k]=m.querySelector('#s_'+k).value.trim(); });
+    if(!s.nombre){ toast('Ponele un nombre',true); return; }
+    if(!S.secuencias.some(x=>x.id===s.id)) S.secuencias.unshift(s);
+    guardar(true); cerrarModal(); ir('historias',{sec:s.id}); toast('Guardada ✓');
+  };});
+}
+function formSlide(sec,id){
+  const s=sec.slides.find(x=>x.id===id); if(!s) return;
+  const i=sec.slides.indexOf(s);
+  modal('Historia '+String(i+1).padStart(2,'0'),'<div class="fgrid">'+
+    campo('Texto en pantalla',ta('sl_texto',s.texto,'Lo que va escrito sobre la foto. Corto: en historias nadie lee párrafos.',80),1)+
+    campo('CTA',inp('sl_cta',s.cta,'Deslizá para arriba'))+
+    campo('Sticker',sel('sl_sticker',s.sticker||'',STICKERS))+
+    campo('Duración',inp('sl_dur',s.dur,'5 seg'))+
+    campo('Link de la foto (Drive, Dropbox, etc.)',inp('sl_link',s.link,'https://…','url'))+
+    campo('Nota de producción',ta('sl_nota',s.nota,'Grabar en el escritorio, luz de ventana.',60),1)+
+  '</div>'+(s.img?'<div class="row" style="margin-top:14px"><button class="btn sm ghost" id="sl_bajar">⬇️ Bajar esta foto</button>'+
+    '<button class="btn sm ghost danger" id="sl_quitar">Quitar foto</button></div>':''),
+  '<button class="btn ghost" data-cerrar>Cancelar</button><button class="btn pri" id="sl_ok">Guardar</button>',
+  m=>{
+    m.querySelector('#sl_ok').onclick=()=>{
+      ['texto','cta','sticker','dur','link','nota'].forEach(k=>{ s[k]=m.querySelector('#sl_'+k).value.trim(); });
+      guardar(true); cerrarModal(); pintar(); toast('Guardada ✓');
+    };
+    const bj=m.querySelector('#sl_bajar');
+    if(bj) bj.onclick=()=>bajar(limpiarNombre(sec.nombre)+'-'+String(i+1).padStart(2,'0')+'.jpg',new Blob([dataURLaBytes(s.img)],{type:'image/jpeg'}));
+    const q=m.querySelector('#sl_quitar');
+    if(q) q.onclick=()=>{ delete s.img; guardar(true); cerrarModal(); pintar(); toast('Foto quitada'); };
+  });
+}
+function guionTexto(sec){
+  const L=['SECUENCIA DE HISTORIAS','='.repeat(46),sec.nombre||'Sin nombre',
+    'Fecha: '+fecha(sec.fecha)+(sec.cliente?'   Cliente: '+sec.cliente:''),
+    'Historias: '+sec.slides.length];
+  if(sec.objetivo) L.push('','Objetivo: '+sec.objetivo);
+  L.push('','='.repeat(46),'');
+  sec.slides.forEach((s,i)=>{
+    L.push('── HISTORIA '+String(i+1).padStart(2,'0')+' ──');
+    L.push('Foto: '+(s.img?String(i+1).padStart(2,'0')+'.jpg':(s.link?s.link:'(sin foto)')));
+    if(s.texto) L.push('Texto en pantalla: '+s.texto);
+    if(s.cta) L.push('CTA: '+s.cta);
+    if(s.sticker) L.push('Sticker: '+s.sticker);
+    if(s.dur) L.push('Duración: '+s.dur);
+    if(s.nota) L.push('Nota: '+s.nota);
+    L.push('');
+  });
+  L.push('Generado con Content OS · Módulos');
+  return L.join('\n');
+}
+async function exportarZip(sec){
+  if(!sec.slides.length) return;
+  const base=limpiarNombre(sec.nombre);
+  const files=[];
+  sec.slides.forEach((s,i)=>{
+    if(s.img) files.push({name:String(i+1).padStart(2,'0')+'.jpg',data:dataURLaBytes(s.img)});
+  });
+  files.push({name:'guion.txt',data:new TextEncoder().encode(guionTexto(sec))});
+  try{ await bajar(base+'.zip',zip(files)); }
+  catch(e){ toast('No pude armar el ZIP: '+e.message,true); }
+}
+
+/* ══════════════ 12. Datos y respaldo ══════════════ */
+VISTAS.datos=function(){
+  let bytes=0; try{ bytes=(localStorage.getItem(KEY)||'').length; }catch(e){}
+  const mb=(bytes/1048576);
+  return head('⚙️','Datos y respaldo','Todo se guarda en este navegador, en esta computadora. Bajate un respaldo cada tanto y para pasarlo a otro dispositivo.')+
+  '<div class="tiles">'+
+    tile('Referentes',S.refs.length,'con '+S.refs.reduce((a,r)=>a+((r.videos||[]).length),0)+' videos')+
+    tile('Publicaciones',S.posts.length,'en métricas')+
+    tile('Banco',S.biblio.length,'hooks, guiones, CTAs')+
+    tile('Secuencias',S.secuencias.length,S.secuencias.reduce((a,s)=>a+((s.slides||[]).length),0)+' historias')+
+    tile('Variantes',S.variantes.length,'generadas')+
+    tile('Espacio usado',mb<0.1?Math.round(bytes/1024)+' KB':mb.toFixed(1)+' MB',mb>3.5?'⚠️ cerca del límite':'de ~5 MB disponibles',mb>3.5)+
+  '</div>'+
+  '<div class="sect"><span class="lab">Respaldo</span><div class="card"><div class="row">'+
+    '<button class="btn pri" id="d_exp">⬇️ Bajar respaldo (.json)</button>'+
+    '<button class="btn" id="d_imp">⬆️ Restaurar desde archivo</button>'+
+    '<input type="file" id="d_file" accept="application/json,.json" hidden>'+
+    '<button class="btn ghost danger" id="d_wipe" style="margin-left:auto">Borrar todo</button>'+
+  '</div><p class="hint" style="margin:12px 0 0">El respaldo trae todo, fotos incluidas. Es también la forma de mover tus datos entre esta versión y la de tu dashboard: bajás el archivo de un lado y lo restaurás del otro.</p></div></div>'+
+  '<div class="sect"><span class="lab">Dónde vive esto</span><div class="card"><p class="hint" style="margin:0">'+
+    'Nada sale de tu navegador: no hay servidor ni cuenta. Si borrás los datos del sitio o entrás desde otra computadora, no vas a ver nada — por eso el respaldo. '+
+    'Las fotos de las secuencias son lo que más pesa; si te acercás al límite, exportá el ZIP y borrá la secuencia vieja.</p></div></div>';
+};
+VISTAS.datos_mount=function(){
+  $('#d_exp').onclick=()=>bajar('content-os-respaldo-'+hoy()+'.json',
+    new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));
+  $('#d_imp').onclick=()=>$('#d_file').click();
+  $('#d_file').onchange=function(){
+    const f=this.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const d=JSON.parse(r.result);
+        if(typeof d!=='object'||!d) throw new Error('formato');
+        confirmar('Restaurar reemplaza todo lo que tenés cargado ahora. ¿Seguimos?',()=>{
+          S=Object.assign(JSON.parse(JSON.stringify(VACIO)),d);
+          guardar(true); pintarNav(); pintar(); toast('Restaurado ✓');
+        });
+      }catch(e){ toast('Ese archivo no es un respaldo válido.',true); }
+    };
+    r.readAsText(f); this.value='';
+  };
+  $('#d_wipe').onclick=()=>confirmar('Esto borra referentes, métricas, banco, secuencias y variantes. No se puede deshacer.',()=>{
+    S=JSON.parse(JSON.stringify(VACIO)); guardar(true); ctx={}; pintarNav(); pintar(); toast('Todo borrado');
+  });
+};
+
+/* ══════════════ 13. Arranque ══════════════ */
+pintarNav(); pintar();
+window.addEventListener('beforeunload',()=>guardar(true));
+})();
+</script>
+
+</body>
+</html>

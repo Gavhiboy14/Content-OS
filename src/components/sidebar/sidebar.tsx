@@ -309,6 +309,21 @@ export function Sidebar({ tree }: SidebarProps) {
             </VistaGlobal>
           ))}
         </div>
+
+        {/* Los módulos son una app aparte que vive en /modulos.html: guarda
+            en el navegador y no comparte datos con esto. Va en su propio
+            grupo para que se note que es otra cosa, y con un <a> normal
+            porque no es una ruta de esta aplicación. */}
+        <div className="mt-6">
+          <TituloDeGrupo>Módulos</TituloDeGrupo>
+          <a
+            href="/modulos.html"
+            className="relative flex items-center gap-2.5 rounded-lg py-1.5 pr-1 pl-[26px] text-[13px] text-ink-2 transition-colors duration-200 hover:bg-white/[0.06] hover:text-ink"
+          >
+            <span className="shrink-0 text-[13px] leading-none">🧩</span>
+            Abrir módulos
+          </a>
+        </div>
       </nav>
 
       <div className="border-t border-line p-2">
