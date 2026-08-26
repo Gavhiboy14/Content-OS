@@ -421,16 +421,11 @@ function avisoMarca(){
 
 /* ══════════════ 5. Navegación ══════════════ */
 const MODULOS=[
-  {g:'Tu marca'},
-  {id:'marca',ico:'🎯',t:'Perfil de marca',sub:'El contexto que alimenta todo'},
   {g:'Módulos'},
-  {id:'metricas',ico:'📊',t:'Métricas',c:()=>S.posts.length},
-  {id:'espia',ico:'🕵️',t:'Espía de competencia',c:()=>S.refs.length},
-  {id:'ideas',ico:'🧠',t:'Ideas y guiones',c:()=>S.biblio.length},
   {id:'historias',ico:'📸',t:'Secuencias de historias',c:()=>S.secuencias.length},
   {id:'variantes',ico:'♻️',t:'Variantes',c:()=>S.variantes.length},
 ];
-let vista='metricas', ctx={};
+let vista='historias', ctx={};
 
 function pintarNav(){
   const n=$('#nav'); n.innerHTML='';
@@ -1263,7 +1258,7 @@ VISTAS.datos=function(){
     '<button class="btn" id="d_imp">⬆️ Restaurar desde archivo</button>'+
     '<input type="file" id="d_file" accept="application/json,.json" hidden>'+
     '<button class="btn ghost danger" id="d_wipe" style="margin-left:auto">Borrar todo</button>'+
-  '</div><p class="hint" style="margin:12px 0 0">El respaldo trae todo, fotos incluidas. Es también la forma de mover tus datos entre esta versión y la de tu dashboard: bajás el archivo de un lado y lo restaurás del otro.</p></div></div>'+
+  '</div><p class="hint" style="margin:12px 0 0">El respaldo trae todo, fotos incluidas. Sirve para pasar tus datos entre navegadores o dispositivos que también usen esta pantalla — no se conecta con tu dashboard de Content OS, que guarda todo aparte.</p></div></div>'+
   '<div class="sect"><span class="lab">Dónde vive esto</span><div class="card"><p class="hint" style="margin:0">'+
     'Nada sale de tu navegador: no hay servidor ni cuenta. Si borrás los datos del sitio o entrás desde otra computadora, no vas a ver nada — por eso el respaldo. '+
     'Las fotos de las secuencias son lo que más pesa; si te acercás al límite, exportá el ZIP y borrá la secuencia vieja.</p></div></div>';
