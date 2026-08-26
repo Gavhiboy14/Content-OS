@@ -93,6 +93,29 @@ const FORMATO: PropertyDefinition = {
  * donde podés escribir todos los ganchos y rehooks que quieras probar: este
  * campo marca cuál quedó, para poder compararlo después con los números.
  */
+/** A qué pilar de contenido del cliente pertenece esta pieza. */
+const PILAR: PropertyDefinition = {
+  kind: "text",
+  key: "pillar",
+  label: "Pilar",
+  placeholder: "Objeciones, Mindset del closer…",
+};
+
+/** Qué clase de fragmento es una entrada del banco de ideas. */
+const TIPO_BANCO: PropertyDefinition = {
+  kind: "select",
+  key: "entryType",
+  label: "Tipo",
+  defaultValue: "hook",
+  options: [
+    { value: "hook", label: "🪝 Hook", className: "bg-amber-400/20 text-amber-200" },
+    { value: "guion", label: "🎬 Guion", className: "bg-sky-400/20 text-sky-200" },
+    { value: "cta", label: "📣 CTA", className: "bg-violet-400/20 text-violet-200" },
+    { value: "transcripcion", label: "📝 Transcripción", className: "bg-white/[0.10] text-ink-2" },
+    { value: "idea", label: "💡 Idea", className: "bg-emerald-400/20 text-emerald-200" },
+  ],
+};
+
 const HOOK: PropertyDefinition = {
   kind: "text",
   key: "hook",
@@ -221,6 +244,35 @@ const PRIORIDAD: PropertyDefinition = {
   ],
 };
 
+/** El ángulo narrativo de un video de un referente. */
+const ANGULO: PropertyDefinition = {
+  kind: "select",
+  key: "angle",
+  label: "Ángulo",
+  defaultValue: "sin_definir",
+  options: [
+    { value: "sin_definir", label: "Sin definir", className: "bg-white/[0.06] text-ink-3" },
+    { value: "educativo", label: "Educativo", className: "bg-white/[0.10] text-ink-2" },
+    { value: "contra_opinion", label: "Contra-opinión", className: "bg-white/[0.10] text-ink-2" },
+    { value: "caso_real", label: "Caso real", className: "bg-white/[0.10] text-ink-2" },
+    { value: "lista", label: "Lista", className: "bg-white/[0.10] text-ink-2" },
+    { value: "pov", label: "POV / dramatización", className: "bg-white/[0.10] text-ink-2" },
+    { value: "antes_despues", label: "Antes y después", className: "bg-white/[0.10] text-ink-2" },
+    { value: "mito_verdad", label: "Mito vs verdad", className: "bg-white/[0.10] text-ink-2" },
+    { value: "detras_escena", label: "Detrás de escena", className: "bg-white/[0.10] text-ink-2" },
+    { value: "storytelling", label: "Storytelling", className: "bg-white/[0.10] text-ink-2" },
+    { value: "reaccion", label: "Reacción", className: "bg-white/[0.10] text-ink-2" },
+  ],
+};
+
+/** Cuánto dura un video. Texto libre y no número: "0:38" no es una cantidad. */
+const DURACION: PropertyDefinition = {
+  kind: "text",
+  key: "duration",
+  label: "Duración",
+  placeholder: "0:38",
+};
+
 /** El link de una referencia o de una publicación que ya salió. */
 const ENLACE: PropertyDefinition = {
   kind: "url",
@@ -252,6 +304,7 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
       ESTADO_CONTENIDO,
       FORMATO,
       EMBUDO,
+      PILAR,
       FECHA,
       HOOK,
       CTA,
@@ -352,6 +405,45 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
     template: [],
     emptyLabel: "Todavía no anotaste seguidores acá",
     inlinePlaceholder: "Ej: seguidores del 1 de septiembre…",
+  },
+  {
+    type: "video_referente",
+    label: "Video",
+    labelPlural: "Videos",
+    newLabel: "Cargar video",
+    icon: "🎥",
+    hint: "Un video de este referente que le funcionó",
+    hasBody: false,
+    // Las métricas van agrupadas: así el formulario ofrece "Ordenar por
+    // Vistas" solo, gratis, con la misma lógica que ya usa Contenido — no
+    // hace falta escribir de nuevo el orden ni el ranking acá.
+    properties: [
+      FORMATO,
+      ANGULO,
+      ENLACE,
+      DURACION,
+      { kind: "number", key: "views", label: "Visualizaciones", group: "Métricas" },
+      { kind: "number", key: "likes", label: "Likes", group: "Métricas" },
+      { kind: "number", key: "comments", label: "Comentarios", group: "Métricas" },
+      TRANSCRIPCION,
+      NOTAS,
+    ],
+    template: [],
+    emptyLabel: "Sin videos guardados — el hook textual es el 80% del trabajo",
+    inlinePlaceholder: "Hook textual del video…",
+  },
+  {
+    type: "banco",
+    label: "Banco",
+    labelPlural: "Banco de ideas",
+    newLabel: "Agregar al banco",
+    icon: "🧠",
+    hint: "Un hook, un guion, un CTA que querés reusar",
+    hasBody: true,
+    properties: [TIPO_BANCO, PILAR],
+    template: [],
+    emptyLabel: "Banco vacío — empezá pegando tus mejores hooks",
+    showInGeneral: true,
   },
   {
     type: "nota",

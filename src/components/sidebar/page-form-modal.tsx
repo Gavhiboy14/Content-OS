@@ -17,6 +17,20 @@ export interface PageFormValues {
   clientStatus: string;
   /** Meta de contenido del mes, como texto para poder dejarla vacía. */
   goal: string;
+  /** La voz de marca: alimenta los prompts de IA de este cliente. Todo opcional. */
+  audience: string;
+  tone: string;
+  ctaExamples: string;
+  pillars: string;
+  offer: string;
+  avoid: string;
+  /** Si esta página es el perfil de un referente de competencia. */
+  isCompetitor: boolean;
+  refHandle: string;
+  refNiche: string;
+  refFollowers: string;
+  refUrl: string;
+  refNotes: string;
 }
 
 interface PageFormModalProps {
@@ -48,6 +62,18 @@ export function PageFormModal({
     initialValues?.clientStatus ?? ""
   );
   const [goal, setGoal] = useState(initialValues?.goal ?? "");
+  const [audience, setAudience] = useState(initialValues?.audience ?? "");
+  const [tone, setTone] = useState(initialValues?.tone ?? "");
+  const [ctaExamples, setCtaExamples] = useState(initialValues?.ctaExamples ?? "");
+  const [pillars, setPillars] = useState(initialValues?.pillars ?? "");
+  const [offer, setOffer] = useState(initialValues?.offer ?? "");
+  const [avoid, setAvoid] = useState(initialValues?.avoid ?? "");
+  const [isCompetitor, setIsCompetitor] = useState(initialValues?.isCompetitor ?? false);
+  const [refHandle, setRefHandle] = useState(initialValues?.refHandle ?? "");
+  const [refNiche, setRefNiche] = useState(initialValues?.refNiche ?? "");
+  const [refFollowers, setRefFollowers] = useState(initialValues?.refFollowers ?? "");
+  const [refUrl, setRefUrl] = useState(initialValues?.refUrl ?? "");
+  const [refNotes, setRefNotes] = useState(initialValues?.refNotes ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -64,6 +90,18 @@ export function PageFormModal({
     setSubtitle(initialValues?.subtitle ?? "");
     setClientStatus(initialValues?.clientStatus ?? "");
     setGoal(initialValues?.goal ?? "");
+    setAudience(initialValues?.audience ?? "");
+    setTone(initialValues?.tone ?? "");
+    setCtaExamples(initialValues?.ctaExamples ?? "");
+    setPillars(initialValues?.pillars ?? "");
+    setOffer(initialValues?.offer ?? "");
+    setAvoid(initialValues?.avoid ?? "");
+    setIsCompetitor(initialValues?.isCompetitor ?? false);
+    setRefHandle(initialValues?.refHandle ?? "");
+    setRefNiche(initialValues?.refNiche ?? "");
+    setRefFollowers(initialValues?.refFollowers ?? "");
+    setRefUrl(initialValues?.refUrl ?? "");
+    setRefNotes(initialValues?.refNotes ?? "");
     setErrorMsg(null);
     setSubmitting(false);
   } else if (!open && wasOpen) {
@@ -91,6 +129,18 @@ export function PageFormModal({
         subtitle: subtitle.trim(),
         clientStatus,
         goal: metaLimpia,
+        audience: audience.trim(),
+        tone: tone.trim(),
+        ctaExamples: ctaExamples.trim(),
+        pillars: pillars.trim(),
+        offer: offer.trim(),
+        avoid: avoid.trim(),
+        isCompetitor,
+        refHandle: refHandle.trim(),
+        refNiche: refNiche.trim(),
+        refFollowers: refFollowers.trim(),
+        refUrl: refUrl.trim(),
+        refNotes: refNotes.trim(),
       });
       onClose();
     } catch (err) {
@@ -228,6 +278,171 @@ export function PageFormModal({
                 className="w-28 rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
               />
             </div>
+
+            {/* La voz de marca: lo que le da contexto real a cualquier
+                prompt de IA que se arme sobre este cliente. Va plegado
+                porque no hace falta llenarlo para empezar a usar el
+                cliente — se completa cuando se necesita. */}
+            <details>
+              <summary className="cursor-pointer text-[11px] text-ink-2 marker:content-['']">
+                🎯 Voz de marca <span className="text-ink-3">(para los prompts de IA)</span>
+              </summary>
+              <div className="mt-3 flex flex-col gap-3">
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-ink-2">
+                    A quién le habla
+                  </label>
+                  <textarea
+                    value={audience}
+                    onChange={(e) => setAudience(e.target.value)}
+                    rows={2}
+                    placeholder="Coaches e infoproductores que facturan 5-30k USD y no tienen equipo de ventas"
+                    className="w-full resize-y rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-ink-2">
+                    Tono de voz
+                  </label>
+                  <input
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value)}
+                    placeholder="Rioplatense, directo, sin vueltas"
+                    className="w-full rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-ink-2">
+                    CTAs que usa
+                  </label>
+                  <input
+                    value={ctaExamples}
+                    onChange={(e) => setCtaExamples(e.target.value)}
+                    placeholder="Comentá SISTEMA / Escribime LIBRE"
+                    className="w-full rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-ink-2">
+                    Pilares de contenido{" "}
+                    <span className="text-ink-3">(uno por línea)</span>
+                  </label>
+                  <textarea
+                    value={pillars}
+                    onChange={(e) => setPillars(e.target.value)}
+                    rows={3}
+                    placeholder={"Objeciones\nMindset del closer\nCasos reales"}
+                    className="w-full resize-y rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-ink-2">
+                    Qué vende / a dónde quiere llevar
+                  </label>
+                  <textarea
+                    value={offer}
+                    onChange={(e) => setOffer(e.target.value)}
+                    rows={2}
+                    placeholder="Mentoría de 8 semanas + implementación del sistema de ventas"
+                    className="w-full resize-y rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-ink-2">
+                    Nunca hacer{" "}
+                    <span className="text-ink-3">(líneas rojas)</span>
+                  </label>
+                  <textarea
+                    value={avoid}
+                    onChange={(e) => setAvoid(e.target.value)}
+                    rows={2}
+                    placeholder="Nada de promesas de plata fácil, sin emojis en exceso"
+                    className="w-full resize-y rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                  />
+                </div>
+              </div>
+            </details>
+          </div>
+        )}
+
+        {/* El referente de competencia va en páginas hijas, nunca en el
+            cliente raíz — mezclar los dos convertiría por accidente a un
+            cliente en un competidor si alguien tilda esto sin querer. */}
+        {!showSection && (
+          <div className="flex flex-col gap-3 rounded-xl border border-line bg-black/15 p-3">
+            <label className="flex items-center gap-2 text-[13px] text-ink-2">
+              <input
+                type="checkbox"
+                checked={isCompetitor}
+                onChange={(e) => setIsCompetitor(e.target.checked)}
+                className="h-4 w-4 rounded border-line-hi bg-black/25 accent-accent"
+              />
+              🕵️ Es un referente de competencia
+            </label>
+
+            {isCompetitor && (
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="mb-1.5 block text-[11px] text-ink-2">
+                      Usuario
+                    </label>
+                    <input
+                      value={refHandle}
+                      onChange={(e) => setRefHandle(e.target.value)}
+                      placeholder="@fulano"
+                      className="w-full rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="mb-1.5 block text-[11px] text-ink-2">
+                      Seguidores
+                    </label>
+                    <input
+                      value={refFollowers}
+                      onChange={(e) => setRefFollowers(e.target.value)}
+                      placeholder="180 mil"
+                      className="w-full rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-ink-2">
+                    Nicho / ángulo
+                  </label>
+                  <input
+                    value={refNiche}
+                    onChange={(e) => setRefNiche(e.target.value)}
+                    placeholder="Ventas B2B"
+                    className="w-full rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-ink-2">
+                    Link del perfil
+                  </label>
+                  <input
+                    type="url"
+                    value={refUrl}
+                    onChange={(e) => setRefUrl(e.target.value)}
+                    placeholder="https://instagram.com/…"
+                    className="w-full rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-ink-2">
+                    Por qué lo seguís
+                  </label>
+                  <textarea
+                    value={refNotes}
+                    onChange={(e) => setRefNotes(e.target.value)}
+                    rows={2}
+                    placeholder="Hace el mismo tema que yo pero con dramatizaciones."
+                    className="w-full resize-y rounded-xl border border-line-hi bg-black/25 px-3 py-2 text-sm leading-relaxed text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-accent/50"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 

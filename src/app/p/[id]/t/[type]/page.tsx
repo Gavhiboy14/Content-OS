@@ -2,13 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AddContentButton } from "@/components/content/add-content-button";
+import { AnalyzeMetricsButton } from "@/components/content/analyze-metrics-button";
 import { ContentList } from "@/components/content/content-list";
+import { IdeaPromptGenerator } from "@/components/content/idea-prompt-generator";
 import {
   getContentTypeDefinition,
   isKnownContentType,
 } from "@/lib/content-types";
 import { getContentForPages } from "@/lib/content";
 import { getAllPages, getPageContext, subtreeIds } from "@/lib/pages";
+import { parsePillars } from "@/lib/page-types";
 
 /**
  * La página de gestión de un tipo dentro de un cliente: todas sus ideas,
@@ -78,14 +81,33 @@ export default async function ClientTypeView({
               </div>
             </div>
 
-            <AddContentButton
-              pageId={page.id}
-              pageTitle={page.title}
-              destinos={destinos}
-              fixedType={type}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Sólo tiene sentido acá: necesita saber de qué cliente es
+                  para meterle su voz de marca al prompt. En las vistas
+                  globales, que cruzan varios clientes, no aparece. */}
+              {type === "contenido" && (
+                <AnalyzeMetricsButton client={page} items={items} />
+              )}
+              <AddContentButton
+                pageId={page.id}
+                pageTitle={page.title}
+                destinos={destinos}
+                fixedType={type}
+              />
+            </div>
           </div>
         </header>
+
+        {/* Igual que el de métricas: sólo tiene sentido acá, donde se sabe
+            de qué cliente es. */}
+        {type === "banco" && (
+          <div className="mb-6">
+            <IdeaPromptGenerator
+              clientId={page.id}
+              pillars={parsePillars(page.properties.pillars)}
+            />
+          </div>
+        )}
 
         {/* Las tareas se ordenan por cuándo vencen; el resto, por la página
             donde vive cada una. */}

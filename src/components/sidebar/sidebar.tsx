@@ -196,6 +196,23 @@ export function Sidebar({ tree }: SidebarProps) {
       subtitle: values.subtitle,
       clientStatus: values.clientStatus,
       goal: values.goal,
+      audience: values.audience,
+      tone: values.tone,
+      ctaExamples: values.ctaExamples,
+      pillars: values.pillars,
+      offer: values.offer,
+      avoid: values.avoid,
+    };
+  }
+
+  /** Igual que arriba, pero para el perfil de un referente de competencia. */
+  function competitorProperties(values: PageFormValues): Record<string, string> {
+    return {
+      refHandle: values.refHandle,
+      refNiche: values.refNiche,
+      refFollowers: values.refFollowers,
+      refUrl: values.refUrl,
+      refNotes: values.refNotes,
     };
   }
 
@@ -207,7 +224,12 @@ export function Sidebar({ tree }: SidebarProps) {
       icon: values.icon,
       parentId: modal.parentId,
       section: esRaiz ? values.section || null : null,
-      properties: esRaiz ? clientProperties(values) : undefined,
+      type: !esRaiz && values.isCompetitor ? "referente" : undefined,
+      properties: esRaiz
+        ? clientProperties(values)
+        : values.isCompetitor
+          ? competitorProperties(values)
+          : undefined,
     });
     startTransition(() => router.push(`/p/${page.id}`));
   }
@@ -219,7 +241,14 @@ export function Sidebar({ tree }: SidebarProps) {
       title: values.title,
       icon: values.icon,
       section: esRaiz ? values.section || null : undefined,
-      properties: esRaiz ? clientProperties(values) : undefined,
+      // En una página hija se fija el tipo siempre, para que destildar el
+      // casillero también revierta la página a normal.
+      type: !esRaiz ? (values.isCompetitor ? "referente" : "page") : undefined,
+      properties: esRaiz
+        ? clientProperties(values)
+        : values.isCompetitor
+          ? competitorProperties(values)
+          : undefined,
     });
   }
 
@@ -368,6 +397,18 @@ export function Sidebar({ tree }: SidebarProps) {
                 subtitle: modal.page.properties.subtitle ?? "",
                 clientStatus: modal.page.properties.clientStatus ?? "",
                 goal: modal.page.properties.goal ?? "",
+                audience: modal.page.properties.audience ?? "",
+                tone: modal.page.properties.tone ?? "",
+                ctaExamples: modal.page.properties.ctaExamples ?? "",
+                pillars: modal.page.properties.pillars ?? "",
+                offer: modal.page.properties.offer ?? "",
+                avoid: modal.page.properties.avoid ?? "",
+                isCompetitor: modal.page.type === "referente",
+                refHandle: modal.page.properties.refHandle ?? "",
+                refNiche: modal.page.properties.refNiche ?? "",
+                refFollowers: modal.page.properties.refFollowers ?? "",
+                refUrl: modal.page.properties.refUrl ?? "",
+                refNotes: modal.page.properties.refNotes ?? "",
               }
             : undefined
         }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddContentButton } from "@/components/content/add-content-button";
+import { CompetitorProfile } from "@/components/content/competitor-profile";
 import { ContentList } from "@/components/content/content-list";
 import type { Destino } from "@/components/content/content-form-modal";
 import { ClientDashboard } from "@/components/dashboard/client-dashboard";
@@ -18,6 +19,7 @@ import {
   isPendingContent,
 } from "@/lib/content-types";
 import { getAllPages, getPageContext, subtreeIds } from "@/lib/pages";
+import { ownerClient } from "@/lib/workspace";
 import type { Page } from "@/lib/types";
 
 /**
@@ -54,6 +56,8 @@ export default async function PageView({
 
         {page.type === "home" ? (
           <PortadaDelWorkspace page={page} pages={pages} />
+        ) : page.type === "referente" ? (
+          <PaginaReferente page={page} pages={pages} destinos={destinos} />
         ) : children.length > 0 ? (
           <DashboardDeCliente
             page={page}
@@ -174,6 +178,88 @@ async function DashboardDeCliente({
       items={items}
       destinos={destinos}
     />
+  );
+}
+
+/**
+ * Un referente de competencia: su ficha (usuario, nicho, seguidores) y sus
+ * videos cargados, con el botón para sacarles el patrón. Es una página
+ * simple con un encabezado extra arriba — la lista de videos, la búsqueda y
+ * el alta salen gratis de lo que ya existe.
+ */
+async function PaginaReferente({
+  page,
+  pages,
+  destinos,
+}: {
+  page: Page;
+  pages: Page[];
+  destinos: Destino[];
+}) {
+  const [content, blocks] = await Promise.all([
+    getContentForPage(page.id),
+    getBlocks({ pageId: page.id, contentItemId: null }),
+  ]);
+
+  const client = ownerClient(pages, page.id);
+  const videos = content.filter((i) => i.type === "video_referente");
+  const isEmpty = content.length === 0 && blocks.length === 0;
+
+  return (
+    <>
+      <header className="mb-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <span className="mt-0.5 text-3xl leading-none">{page.icon}</span>
+            <div>
+              <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">
+                {page.title}
+              </h1>
+              {videos.length > 0 && (
+                <p className="mt-1.5 font-mono text-[11px] tracking-wider text-ink-3">
+                  {videos.length} {videos.length === 1 ? "video" : "videos"}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <AddContentButton
+            pageId={page.id}
+            pageTitle={page.title}
+            destinos={destinos}
+            fixedType="video_referente"
+          />
+        </div>
+      </header>
+
+      {client && <CompetitorProfile client={client} referente={page} videos={videos} />}
+
+      {isEmpty ? (
+        <EmptyPage pageId={page.id} title={page.title} destinos={destinos} />
+      ) : (
+        <>
+          {content.length > 0 && (
+            <ContentList
+              items={content}
+              pages={[{ id: page.id, title: page.title, icon: page.icon }]}
+              groupBy="type"
+              type="video_referente"
+              emptyLabel="Sin videos guardados todavía"
+            />
+          )}
+
+          <section className="mt-12 border-t border-line pt-8">
+            <h2 className="mb-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-3">
+              Notas de la página
+            </h2>
+            <BlockEditor
+              owner={{ pageId: page.id, contentItemId: null }}
+              initialBlocks={blocks}
+            />
+          </section>
+        </>
+      )}
+    </>
   );
 }
 

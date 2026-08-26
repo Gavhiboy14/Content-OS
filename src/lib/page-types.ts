@@ -132,6 +132,28 @@ export function findSelectProperty(
 export const CLIENT_SUBTITLE_KEY = "subtitle";
 export const CLIENT_GOAL_KEY = "goal";
 
+/**
+ * La voz de marca de un cliente: lo que le da contexto a cualquier prompt de
+ * IA que se arme sobre su contenido. Va por cliente y no una sola vez para
+ * todo el workspace — Federico y Cliente 2 no suenan igual.
+ */
+export const CLIENT_BRAND_KEYS = {
+  audience: "audience",
+  tone: "tone",
+  ctaExamples: "ctaExamples",
+  pillars: "pillars",
+  offer: "offer",
+  avoid: "avoid",
+} as const;
+
+/** Los pilares de contenido, uno por línea en el campo, como lista limpia. */
+export function parsePillars(value: string | undefined): string[] {
+  return (value ?? "")
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 export const CLIENT_STATUS: SelectPropertyDefinition = {
   kind: "select",
   key: "clientStatus",

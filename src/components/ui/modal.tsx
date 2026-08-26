@@ -3,15 +3,18 @@
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 interface ModalProps {
   open: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  /** "sm" (por defecto) para formularios; "lg" para contenido más ancho, como un prompt largo. */
+  size?: "sm" | "lg";
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, size = "sm" }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -50,7 +53,10 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
           guardar. `dvh` en vez de `vh` para que cuente la barra del
           navegador del celular, que aparece y desaparece. */}
       <motion.div
-        className="surface-raised relative max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto rounded-2xl p-5"
+        className={cn(
+          "surface-raised relative max-h-[calc(100dvh-2rem)] w-full overflow-y-auto rounded-2xl p-5",
+          size === "lg" ? "max-w-xl" : "max-w-sm"
+        )}
         animate={
           open
             ? { opacity: 1, scale: 1, y: 0 }
